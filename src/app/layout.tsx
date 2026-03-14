@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   title: "Prvňáček Matika",
   description: "Zábavné procvičování matematiky pro 1. třídu",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
