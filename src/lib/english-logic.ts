@@ -12,15 +12,30 @@ export const generateEnglishProblem = (
   words: VocabularyWord[], 
   modes: EnglishMode[]
 ): EnglishProblem | null => {
-  if (words.length < 4) return null;
+  if (words.length < 1) return null;
 
   const mode = modes[getRandomInt(0, modes.length - 1)];
   const correctWord = words[getRandomInt(0, words.length - 1)];
-  
-  const wrongWords = shuffleArray(words.filter(w => w.id !== correctWord.id)).slice(0, 3);
-  const optionsList = shuffleArray([correctWord, ...wrongWords]);
-
   const id = Math.random().toString(36).substring(2, 9);
+
+  // Generate options using distractors if available
+  const getOptions = (isEn: boolean) => {
+    const distractors = correctWord.distractors || [];
+    let optionsList: string[] = [];
+
+    if (distractors.length > 0) {
+      // Use smart distractors
+      optionsList = distractors.map((d: any) => isEn ? d.en : d.cz);
+    }
+
+    // Add other words from vocabulary if we don't have enough distractors
+    const otherWords = words
+      .filter(w => w.id !== correctWord.id)
+      .map(w => isEn ? w.en : w.cz);
+    
+    optionsList = shuffleArray([...new Set([...optionsList, ...otherWords])]).slice(0, 3);
+    return shuffleArray([isEn ? correctWord.en : correctWord.cz, ...optionsList]);
+  };
 
   switch (mode) {
     case 'en-cz':
@@ -29,7 +44,7 @@ export const generateEnglishProblem = (
         type: mode,
         questionText: correctWord.en,
         correctAnswer: correctWord.cz,
-        options: optionsList.map(w => w.cz),
+        options: getOptions(false),
         audioUrl: correctWord.audio_url
       };
     case 'cz-en':
@@ -38,8 +53,8 @@ export const generateEnglishProblem = (
         type: mode,
         questionText: correctWord.cz,
         correctAnswer: correctWord.en,
-        options: optionsList.map(w => w.en),
-        audioUrl: correctWord.audio_url // Pre-load audio even if not listen mode
+        options: getOptions(true),
+        audioUrl: correctWord.audio_url
       };
     case 'listen':
       return {
@@ -47,7 +62,7 @@ export const generateEnglishProblem = (
         type: mode,
         questionText: '?',
         correctAnswer: correctWord.en,
-        options: optionsList.map(w => w.en),
+        options: getOptions(true),
         audioUrl: correctWord.audio_url
       };
     case 'spelling':
@@ -62,15 +77,7 @@ export const generateEnglishProblem = (
 };
 
 export const playAudio = (url: string) => {
-  if (!url) {
-    console.warn('No audio URL provided');
-    return;
-  }
-  
+  if (!url) return;
   const audio = new Audio(url);
-  // Ensure we set crossOrigin for cloud storage files if needed, 
-  // but for public Supabase URLs it should work fine.
-  audio.play().catch(e => {
-    console.error('Failed to play audio from:', url, e);
-  });
+  audio.play().catch(e => console.error('Failed to play audio:', e));
 };

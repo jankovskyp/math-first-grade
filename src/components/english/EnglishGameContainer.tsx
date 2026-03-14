@@ -5,7 +5,7 @@ import { EnglishGameState, EnglishMode, EnglishProblem, EnglishStats, EnglishLea
 import { generateEnglishProblem, playAudio } from '../../lib/english-logic';
 import { DeskButton } from '../shared/DeskButton';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Target, Frown, Star, Loader2, Volume2, ArrowRight, Calendar, X, ChevronLeft, ChevronRight, Medal } from 'lucide-react';
+import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Target, Frown, Star, Loader2, Volume2, ArrowRight, Calendar, X, ChevronLeft, ChevronRight, Medal, HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const LOCAL_STORAGE_KEY = 'english-leaderboard-local-v2';
@@ -79,7 +79,7 @@ export default function EnglishGameContainer() {
       const { data } = await supabase.from('vocabulary').select('*').order('created_at', { ascending: false });
       if (data) setWords(data as VocabularyWord[]);
     } else {
-      setWords([{ id: '1', en: 'cat', cz: 'kočka', created_at: '2024-01-01' }, { id: '2', en: 'dog', cz: 'pes', created_at: '2024-01-01' }, { id: '3', en: 'house', cz: 'dům', created_at: '2024-01-01' }, { id: '4', en: 'tree', cz: 'strom', created_at: '2024-01-01' }, { id: '5', en: 'apple', cz: 'jablko', created_at: '2024-01-01' }]);
+      setWords([{ id: '1', en: 'cat', cz: 'kočka', created_at: '2024-01-01', distractors: [] }]);
     }
   }, []);
 
@@ -142,8 +142,8 @@ export default function EnglishGameContainer() {
 
   const startNewGame = (mode: 'training' | 'competition') => {
     const filtered = getFilteredWords();
-    if (filtered.length < 4) {
-      alert(`Potřebuješ aspoň 4 slovíčka. Aktuálně máš vybráno: ${filtered.length}.`);
+    if (filtered.length < 1) {
+      alert(`Potřebuješ aspoň jedno slovíčko.`);
       return;
     }
     setGameMode(mode);
@@ -175,7 +175,6 @@ export default function EnglishGameContainer() {
       const newTotal = stats.total + 1;
       setStats(prev => ({ ...prev, correct: newCorrect, total: newTotal }));
       
-      // Points Logic
       if (gameMode === 'competition') {
         const accuracy = Math.round((newCorrect / newTotal) * 100);
         const rawScore = (newCorrect * 10) - (stats.errors * 5);
@@ -244,12 +243,12 @@ export default function EnglishGameContainer() {
 
   if (gameState === 'HOME') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 font-sans text-board-black relative">
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 font-sans text-board-black relative text-board-black">
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20 text-board-black">Angličtina</h1>
+          <h1 className="text-5xl font-black italic opacity-20">Angličtina</h1>
         </div>
-        <div className="flex flex-col gap-4 w-full max-w-md text-board-black">
+        <div className="flex flex-col gap-4 w-full max-w-md">
           <DeskButton size="xl" variant="info" onClick={() => { setGameMode('training'); setGameState('SETUP'); }}><Play className="mr-4 w-12 h-12" fill="currentColor" strokeWidth={2.5} /> Trénink</DeskButton>
           <DeskButton size="xl" variant="secondary" onClick={() => { setGameMode('competition'); setGameState('SETUP'); }}><Trophy className="mr-4 w-12 h-12" fill="currentColor" strokeWidth={2.5} /> Soutěž</DeskButton>
           <DeskButton size="lg" variant="outline" className="border-slate-200" onClick={() => setGameState('LEADERBOARD')}><ListOrdered className="mr-4 w-8 h-8" /> Žebříček</DeskButton>
@@ -261,44 +260,44 @@ export default function EnglishGameContainer() {
   if (gameState === 'LEADERBOARD') {
     const filteredLeaderboard = leaderboardTab === 'all' ? leaderboard : leaderboard.filter(e => e.mode === leaderboardTab);
     return (
-      <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black">
+      <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black text-board-black">
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20 text-board-black text-board-black">Angličtina</h1>
+          <h1 className="text-5xl font-black italic opacity-20">Angličtina</h1>
         </div>
-        <h2 className="text-5xl font-black mt-2 italic text-board-black">Síň slávy</h2>
-        <div className="flex gap-2 p-1.5 bg-slate-100 rounded-[1.5rem] overflow-x-auto w-full max-w-5xl justify-center text-board-black">
+        <h2 className="text-5xl font-black mt-2 italic">Síň slávy</h2>
+        <div className="flex gap-2 p-1.5 bg-slate-100 rounded-[1.5rem] overflow-x-auto w-full max-w-5xl justify-center">
           <DeskButton size="md" variant={leaderboardTab === 'all' ? 'info' : 'outline'} className={`border-none shadow-none py-2 px-4 whitespace-nowrap ${leaderboardTab !== 'all' ? 'border-[#38BDF8] text-[#38BDF8]' : ''}`} onClick={() => setLeaderboardTab('all')}>Všechno</DeskButton>
           {(['en-cz', 'cz-en', 'listen', 'spelling'] as const).map(m => {
             const labels = { 'en-cz': 'Anglicky', 'cz-en': 'Česky', 'listen': 'Poslech', 'spelling': 'Psaní' };
             return (<DeskButton key={m} size="md" variant={leaderboardTab === m ? 'info' : 'outline'} className={`border-none shadow-none py-2 px-4 whitespace-nowrap ${leaderboardTab !== m ? 'border-[#38BDF8] text-[#38BDF8]' : ''}`} onClick={() => setLeaderboardTab(m)}>{labels[m]}</DeskButton>);
           })}
         </div>
-        <div className="w-full max-w-4xl bg-white rounded-[2.5rem] p-6 shadow-xl overflow-hidden flex-1 mb-2 flex flex-col text-board-black">
+        <div className="w-full max-w-4xl bg-white rounded-[2.5rem] p-6 shadow-xl overflow-hidden flex-1 mb-2 flex flex-col text-board-black text-board-black">
           {isLoading ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 text-board-black"><Loader2 className="w-12 h-12 animate-spin text-slate-200" /><p className="text-xl text-slate-300 font-bold text-slate-300">Načítám...</p></div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-4"><Loader2 className="w-12 h-12 animate-spin text-slate-200" /><p className="text-xl text-slate-300 font-bold">Načítám...</p></div>
           ) : filteredLeaderboard.length === 0 ? (
-            <p className="text-center text-2xl text-slate-300 py-16 text-slate-300">Zatím žádné výsledky</p>
+            <p className="text-center text-2xl text-slate-300 py-16">Zatím žádné výsledky</p>
           ) : (
-            <div className="flex flex-col gap-2 overflow-y-auto h-full pr-2 text-board-black">
-              <div className="flex text-slate-400 font-bold px-4 mb-1 uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                 <span className="w-12 text-center">#</span><span className="flex-1">Jméno</span><span className="w-20 text-center">Úspěch</span><span className="w-16 text-center">Ano</span><span className="w-16 text-center">Ne</span><span className="w-24 text-center font-black text-board-black">Body</span>
+            <div className="flex flex-col gap-2 overflow-y-auto h-full pr-2">
+              <div className="flex text-slate-400 font-bold px-4 mb-1 uppercase text-[10px] tracking-[0.2em]">
+                 <span className="w-12 text-center">#</span><span className="flex-1">Jméno</span><span className="w-20 text-center">Úspěch</span><span className="w-16 text-center">Ano</span><span className="w-16 text-center">Ne</span><span className="w-24 text-center font-black">Body</span>
               </div>
               {filteredLeaderboard.map((entry, i) => {
                 const labels = { 'en-cz': 'EN', 'cz-en': 'CZ', 'listen': 'POSLECH', 'spelling': 'PSANÍ' };
                 return (
-                  <div key={entry.id} className="flex items-center p-3 bg-slate-50 rounded-xl text-board-black">
-                    <span className="w-12 flex justify-center">
+                  <div key={entry.id} className="flex items-center p-3 bg-slate-50 rounded-xl">
+                    <span className="w-12 flex justify-center text-board-black text-board-black">
                       {i === 0 ? <Medal className="w-8 h-8 text-yellow-400" fill="currentColor" /> :
                        i === 1 ? <Medal className="w-8 h-8 text-slate-300" fill="currentColor" /> :
                        i === 2 ? <Medal className="w-8 h-8 text-amber-600" fill="currentColor" /> :
                        <span className="text-2xl font-black text-slate-300 italic text-slate-300">#{i + 1}</span>}
                     </span>
-                    <div className="flex-1 ml-3 text-board-black"><p className="text-xl font-black leading-tight uppercase text-board-black">{entry.name} <span className="text-[10px] text-slate-300 font-normal">({labels[entry.mode as keyof typeof labels] || entry.mode})</span></p></div>
+                    <div className="flex-1 ml-3"><p className="text-xl font-black leading-tight uppercase text-board-black">{entry.name} <span className="text-[10px] text-slate-300 font-normal text-slate-300 text-slate-300">({labels[entry.mode as keyof typeof labels] || entry.mode})</span></p></div>
                     <div className="w-20 text-center text-xl font-black text-[#38BDF8] bg-[#38BDF8]/10 py-1 rounded-lg">{entry.accuracy}%</div>
                     <div className="w-16 text-center text-xl font-black text-success/70">{entry.total - entry.errors}</div>
                     <div className="w-16 text-center text-xl font-black text-error/40">{entry.errors}</div>
-                    <div className="w-24 text-center text-2xl font-black">{entry.score}</div>
+                    <div className="w-24 text-center text-2xl font-black text-board-black">{entry.score}</div>
                   </div>
                 );
               })}
@@ -312,23 +311,23 @@ export default function EnglishGameContainer() {
   if (gameState === 'SETUP') {
     const isCompetition = gameMode === 'competition';
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 relative font-sans text-board-black">
-        <div className="absolute top-6 left-6 flex items-center gap-6 text-board-black">
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 relative font-sans text-board-black text-board-black">
+        <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
           <h1 className="text-5xl font-black italic opacity-20 text-board-black">Angličtina</h1>
         </div>
-        <h2 className="text-6xl font-black italic text-board-black">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
+        <h2 className="text-6xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
         
         <div className="flex flex-col gap-3 items-center w-full max-w-xl bg-white p-6 rounded-[2.5rem] border-4 border-slate-50 text-board-black">
-          <p className="text-xl font-black uppercase tracking-widest text-slate-300">Která slovíčka?</p>
-          <div className="flex gap-4 w-full">
+          <p className="text-xl font-black uppercase tracking-widest text-slate-300 text-slate-300">Která slovíčka?</p>
+          <div className="flex gap-4 w-full text-board-black">
              <DeskButton size="md" variant={selectionMode === 'all' ? 'info' : 'outline'} className={`flex-1 py-4 border-2 ${selectionMode !== 'all' ? 'border-[#38BDF8] text-[#38BDF8]' : ''}`} onClick={() => setSelectionMode('all')}>Všechna</DeskButton>
              <DeskButton size="md" variant={selectionMode === 'date' ? 'info' : 'outline'} className={`flex-1 py-4 border-2 ${selectionMode !== 'date' ? 'border-[#38BDF8] text-[#38BDF8]' : ''}`} onClick={() => { setSelectionMode('date'); setIsDatePickerOpen(true); }}>{fromDate ? new Date(fromDate).toLocaleDateString('cs-CZ') : 'Jen od data'}</DeskButton>
           </div>
           <div className="text-center text-board-black"><span className="text-lg font-black text-slate-400">Ve výběru: <span className={filteredCount < 4 ? 'text-error' : 'text-[#38BDF8]'}>{filteredCount}</span> slovíček</span></div>
         </div>
 
-        <div className="flex flex-col gap-4 items-center text-board-black text-board-black text-board-black">
+        <div className="flex flex-col gap-4 items-center">
           <p className="text-xl font-black text-slate-300 uppercase tracking-widest text-slate-300">Vyber jeden režim</p>
           <div className="grid grid-cols-2 gap-4 w-full max-w-xl text-board-black">
             {(['en-cz', 'cz-en', 'listen', 'spelling'] as EnglishMode[]).map(op => {
@@ -347,18 +346,18 @@ export default function EnglishGameContainer() {
     const isSpelling = currentProblem.type === 'spelling';
     const isListen = currentProblem.type === 'listen';
     return (
-      <div className="flex flex-col h-full relative p-4 font-sans text-board-black text-board-black">
-        <div className="flex justify-between items-center mb-4 text-board-black">
-          <div className="flex gap-3 items-center text-board-black text-board-black text-board-black">
+      <div className="flex flex-col h-full relative p-4 font-sans text-board-black text-board-black text-board-black">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex gap-3 items-center text-board-black text-board-black">
              <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
-             <div className="flex gap-2 text-board-black">
+             <div className="flex gap-2">
                <div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><CheckCircle2 className="text-success w-6 h-6" /><span className="text-3xl font-black text-success leading-none">{stats.correct}</span></div>
                {stats.errors > 0 && (<div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><XCircle className="text-error w-6 h-6" /><span className="text-3xl font-black text-error leading-none">{stats.errors}</span></div>)}
              </div>
           </div>
 
           {gameMode === 'competition' && (
-            <div className="absolute left-1/2 -translate-x-1/2 top-6 flex flex-col items-center text-board-black">
+            <div className="absolute left-1/2 -translate-x-1/2 top-6 flex flex-col items-center">
                <div className={`bg-board-black text-white px-8 py-3 rounded-2xl flex items-center gap-4 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
                   <Star className="w-8 h-8 text-[#38BDF8]" fill="currentColor" />
                   <span className="text-5xl font-black">{liveScore}</span>
@@ -367,31 +366,38 @@ export default function EnglishGameContainer() {
           )}
 
           {gameMode === 'competition' && (
-            <div className="flex flex-col items-end gap-1 w-1/4 text-board-black">
-              <div className="flex items-center gap-2 text-board-black text-board-black text-board-black"><Timer className="w-6 h-6 text-board-black" /><span className="text-3xl font-mono font-black text-board-black">{timeLeft}s</span></div>
+            <div className="flex flex-col items-end gap-1 w-1/4">
+              <div className="flex items-center gap-2 text-board-black"><Timer className="w-6 h-6" /><span className="text-3xl font-mono font-black text-board-black">{timeLeft}s</span></div>
               <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border-2 border-white shadow-inner"><div className="h-full bg-[#38BDF8] transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / 60) * 100}%` }} /></div>
             </div>
           )}
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 text-board-black text-board-black text-board-black">
-          <div className="flex flex-col items-center gap-6 text-board-black">
+        <div className="flex-1 flex flex-col items-center justify-center gap-8">
+          <div className="flex flex-col items-center gap-6">
             {(isListen || isSpelling) && currentProblem.audioUrl && (
                <DeskButton variant="outline" size="lg" className="rounded-full w-48 h-48 border-8 border-[#38BDF8] text-[#38BDF8] shadow-xl hover:bg-[#38BDF8]/10 transition-all text-board-black" onClick={() => playAudio(currentProblem.audioUrl!)}>
                  <Volume2 className="w-24 h-24 text-[#38BDF8]" strokeWidth={3} />
                </DeskButton>
             )}
-            <div className="text-6xl md:text-9xl font-black tracking-tight text-center text-board-black drop-shadow-sm px-4 text-board-black">
+            <div className="text-6xl md:text-9xl font-black tracking-tight text-center text-board-black drop-shadow-sm px-4">
               {currentProblem.questionText}
             </div>
           </div>
-          <div className="w-full max-w-4xl mt-8 text-board-black">
+          <div className="w-full max-w-4xl mt-8">
             {isSpelling ? (
-              <form onSubmit={handleSpellingSubmit} className="flex flex-col items-center gap-6 w-full px-4 text-board-black text-board-black text-board-black">
+              <form onSubmit={handleSpellingSubmit} className="flex flex-col items-center gap-6 w-full px-4 text-board-black">
                  <input ref={spellingInputRef} type="text" value={spellingInput} onChange={(e) => setSpellingInput(e.target.value)} className={`w-full max-w-2xl text-center text-6xl font-black py-8 rounded-[2rem] border-8 outline-none bg-white text-board-black transition-all ${feedback === 'correct' ? 'border-success text-success bg-success/10' : feedback === 'wrong' ? 'border-error text-error bg-error/10' : 'border-slate-200 focus:border-[#38BDF8]'}`} autoFocus autoCapitalize="none" autoComplete="off" disabled={feedback === 'correct'} />
-                 <DeskButton size="xl" type="submit" variant="info" className="w-full max-w-2xl h-24 text-board-black" disabled={feedback === 'correct'}><ArrowRight className="w-12 h-12 text-white" /></DeskButton>
+                 <div className="flex gap-4 w-full max-w-2xl">
+                    <DeskButton size="xl" type="submit" variant="info" className="flex-1 h-24" disabled={feedback === 'correct'}><ArrowRight className="w-12 h-12 text-white text-white text-white" /></DeskButton>
+                    {hasErrorInCurrent && !feedback && (
+                      <DeskButton size="xl" variant="outline" className="flex-1 h-24 border-slate-300 text-slate-400" onClick={() => nextProblem()}>
+                        <HelpCircle className="w-10 h-10 mr-4" /> Nevím
+                      </DeskButton>
+                    )}
+                 </div>
               </form>
             ) : (
-              <div className="grid gap-6 w-full grid-cols-2 px-4 text-board-black text-board-black text-board-black text-board-black">
+              <div className="grid gap-6 w-full grid-cols-2 px-4">
                 {currentProblem.options?.map((opt, i) => (
                   <DeskButton key={i} size="xl" variant={feedback === 'correct' && opt === currentProblem.correctAnswer ? 'success' : clickedOptions.has(opt) ? 'error' : 'outline'} className={`w-full h-32 text-4xl md:text-5xl font-black ${feedback !== 'correct' && !clickedOptions.has(opt) ? 'border-[#38BDF8] text-board-black' : ''}`} onClick={() => handleAnswer(opt)} disabled={feedback === 'correct' || clickedOptions.has(opt)}>{opt}</DeskButton>
                 ))}
@@ -408,33 +414,33 @@ export default function EnglishGameContainer() {
     const accuracy = Math.round((stats.correct / (stats.total || 1)) * 100);
     const finalScore = liveScore;
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 p-4 font-sans overflow-y-auto text-board-black text-board-black text-board-black">
-        <div className="flex flex-col items-center text-board-black">
-          {isSad ? (<Frown className="w-20 h-20 text-error mb-2 animate-bounce" />) : (<Trophy className="w-20 h-20 text-[#38BDF8] mb-2 animate-bounce text-[#38BDF8]" />)}
-          <h2 className="text-5xl font-black italic text-board-black">{isSad ? 'Zkus to znovu!' : 'Super výkon!'}</h2>
+      <div className="flex flex-col items-center justify-center h-full gap-4 p-4 font-sans overflow-y-auto text-board-black text-board-black">
+        <div className="flex flex-col items-center">
+          {isSad ? (<Frown className="w-20 h-20 text-error mb-2 animate-bounce" />) : (<Trophy className="w-20 h-20 text-[#38BDF8] mb-2 animate-bounce" />)}
+          <h2 className="text-5xl font-black italic">{isSad ? 'Zkus to znovu!' : 'Super výkon!'}</h2>
         </div>
-        <div className="bg-white rounded-[2.5rem] p-6 shadow-2xl border-4 border-slate-50 flex flex-col gap-4 items-center w-full max-w-md text-board-black text-board-black text-board-black text-board-black text-board-black">
+        <div className="bg-white rounded-[2.5rem] p-6 shadow-2xl border-4 border-slate-50 flex flex-col gap-4 items-center w-full max-w-md text-board-black">
           <div className="grid grid-cols-2 w-full gap-3 text-board-black">
-             <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col text-board-black"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-slate-400">Správně</span><span className="text-4xl font-black text-success text-success">{stats.correct}</span></div>
-             <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col text-board-black"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-slate-400">Úspěšnost</span><span className="text-4xl font-black text-carpet-green text-carpet-green">{accuracy}%</span></div>
+             <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Správně</span><span className="text-4xl font-black text-success text-success">{stats.correct}</span></div>
+             <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-slate-400">Úspěšnost</span><span className="text-4xl font-black text-[#38BDF8] text-[#38BDF8]">{accuracy}%</span></div>
           </div>
-          <div className="flex flex-col items-center gap-1 bg-board-black text-white w-full p-4 rounded-2xl text-white text-white">
+          <div className="flex flex-col items-center gap-1 bg-board-black text-white w-full p-4 rounded-2xl">
              <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-slate-400 text-slate-400">Body</span>
-             <div className="flex items-center gap-3 text-white"><Star className="w-6 h-6 text-[#38BDF8] text-[#38BDF8]" fill="currentColor" /><span className="text-5xl font-black text-white text-white">{finalScore}</span></div>
+             <div className="flex items-center gap-3 text-white text-white"><Star className="w-6 h-6 text-[#38BDF8] text-[#38BDF8]" fill="currentColor" /><span className="text-5xl font-black text-white text-white text-white">{finalScore}</span></div>
           </div>
           {gameMode === 'competition' && (
-            <div className="flex flex-col gap-3 w-full mt-2 pt-4 border-t-2 border-slate-100 text-board-black text-board-black text-board-black text-board-black">
-               <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value.slice(0, 12))} placeholder="TVOJE JMÉNO" className="w-full text-center text-3xl font-black uppercase py-4 rounded-2xl border-4 border-slate-100 focus:border-[#38BDF8] outline-none bg-white text-board-black placeholder:text-slate-200 transition-all text-board-black" autoFocus />
-               <DeskButton size="lg" variant="secondary" onClick={saveToLeaderboard} disabled={!playerName.trim() || isLoading} className="py-4 text-board-black">
-                  <div className="flex items-center justify-center gap-3 whitespace-nowrap text-white text-white text-white text-white">
-                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6 text-white" />}
+            <div className="flex flex-col gap-3 w-full mt-2 pt-4 border-t-2 border-slate-100 text-board-black">
+               <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value.slice(0, 12))} placeholder="TVOJE JMÉNO" className="w-full text-center text-3xl font-black uppercase py-4 rounded-2xl border-4 border-slate-100 focus:border-[#38BDF8] outline-none bg-white text-board-black placeholder:text-slate-200 transition-all text-board-black text-board-black" autoFocus />
+               <DeskButton size="lg" variant="secondary" onClick={saveToLeaderboard} disabled={!playerName.trim() || isLoading} className="py-4">
+                  <div className="flex items-center justify-center gap-3 whitespace-nowrap text-white text-white">
+                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin text-white" /> : <Save className="w-6 h-6 text-white text-white" />}
                     <span className="text-xl font-bold uppercase text-white text-white">ULOŽIT VÝSLEDEK</span>
                   </div>
                </DeskButton>
             </div>
           )}
         </div>
-        <DeskButton size="md" variant="outline" className="border-slate-200 shadow-none py-3 text-board-black text-board-black" onClick={() => setGameState('HOME')}><RotateCcw className="mr-2 w-5 h-5 text-board-black" /> Zkusit znovu</DeskButton>
+        <DeskButton size="md" variant="outline" className="border-slate-200 shadow-none py-3 text-board-black text-board-black text-board-black" onClick={() => setGameState('HOME')}><RotateCcw className="mr-2 w-5 h-5 text-board-black text-board-black text-board-black" /> Zkusit znovu</DeskButton>
       </div>
     );
   }
