@@ -14,24 +14,23 @@ export async function addVocabularyWord(en: string, cz: string) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
 
-    // 1. Generate Audio using Edge TTS with Promise wrapper to collect chunks
-    const tts = new MsEdgeTTS();
+    // 1. Generate Audio using Edge TTS with Promise wrapper
+    // Cast to any to bypass library type definition issues on Vercel build
+    const tts: any = new MsEdgeTTS();
     await tts.setMetadata("en-US-AvaNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     
-    // Create a buffer from the stream - cast to any to bypass TS error on Vercel
     const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const ttsEmitter = tts as any;
       
-      ttsEmitter.on("data", (chunk: Buffer) => {
+      tts.on("data", (chunk: Buffer) => {
         chunks.push(chunk);
       });
 
-      ttsEmitter.on("end", () => {
+      tts.on("end", () => {
         resolve(Buffer.concat(chunks));
       });
 
-      ttsEmitter.on("error", (err: any) => {
+      tts.on("error", (err: any) => {
         reject(err);
       });
 
@@ -39,7 +38,7 @@ export async function addVocabularyWord(en: string, cz: string) {
       tts.push(en);
     });
 
-    // 2. Upload to Supabase Storage (Bucket must be named 'audio' and be Public)
+    // 2. Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('audio')
       .upload(fileName, audioBuffer, {
