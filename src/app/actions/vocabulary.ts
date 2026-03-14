@@ -1,31 +1,49 @@
 'use server';
 
-import { translateWord } from './translate';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // Use service role for backend uploads
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''; // CRITICAL: Need Service Role Key for uploads
 
 export async function addVocabularyWord(en: string, cz: string) {
   if (!en || !cz) return { error: 'Missing words' };
+  if (!supabaseServiceKey) return { error: 'Missing SUPABASE_SERVICE_ROLE_KEY in environment variables' };
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
 
-    // 1. Generate Audio Buffer using Edge TTS
+    // 1. Generate Audio using Edge TTS with Promise wrapper to collect chunks
     const tts = new MsEdgeTTS();
-    await tts.setMetadata("en-US-AvaMultilingualNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    await tts.setMetadata("en-US-AvaNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
     
-    // The library returns a promise that resolves when the stream is finished
-    // We need to collect the chunks into a single buffer
-    const audioData = await tts.push(en);
-    
-    // 2. Upload to Supabase Storage
+    // Create a buffer from the stream
+    const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      
+      // We listen for data chunks and push them to our array
+      tts.on("data", (chunk: Buffer) => {
+        chunks.push(chunk);
+      });
+
+      // When finished, we concatenate and resolve
+      tts.on("end", () => {
+        resolve(Buffer.concat(chunks));
+      });
+
+      tts.on("error", (err) => {
+        reject(err);
+      });
+
+      // Start the generation
+      tts.push(en);
+    });
+
+    // 2. Upload to Supabase Storage (Bucket must be named 'audio' and be Public)
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('audio')
-      .upload(fileName, audioData, {
+      .upload(fileName, audioBuffer, {
         contentType: 'audio/mpeg',
         cacheControl: '3600',
         upsert: false

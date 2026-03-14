@@ -39,6 +39,7 @@ export const generateEnglishProblem = (
         questionText: correctWord.cz,
         correctAnswer: correctWord.en,
         options: optionsList.map(w => w.en),
+        audioUrl: correctWord.audio_url // Pre-load audio even if not listen mode
       };
     case 'listen':
       return {
@@ -61,7 +62,15 @@ export const generateEnglishProblem = (
 };
 
 export const playAudio = (url: string) => {
-  if (!url) return;
+  if (!url) {
+    console.warn('No audio URL provided');
+    return;
+  }
+  
   const audio = new Audio(url);
-  audio.play().catch(e => console.error('Failed to play audio:', e));
+  // Ensure we set crossOrigin for cloud storage files if needed, 
+  // but for public Supabase URLs it should work fine.
+  audio.play().catch(e => {
+    console.error('Failed to play audio from:', url, e);
+  });
 };
