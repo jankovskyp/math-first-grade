@@ -1,0 +1,17 @@
+{
+  "name": "Prvňáček Matika",
+  "short_name": "Matika",
+  "description": "Zábavná matematika pro 1. třídu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#A3E635",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
