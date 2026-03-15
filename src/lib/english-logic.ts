@@ -18,23 +18,30 @@ export const generateEnglishProblem = (
   const correctWord = words[getRandomInt(0, words.length - 1)];
   const id = Math.random().toString(36).substring(2, 9);
 
-  // Generate options using distractors if available
-  const getOptions = (isEn: boolean) => {
-    const distractors = correctWord.distractors || [];
-    let optionsList: string[] = [];
+  // Pool of basic words for generic fallback
+  const basicPool = ['cat', 'dog', 'apple', 'sun', 'red', 'blue', 'one', 'car', 'tree', 'book'];
 
-    if (distractors.length > 0) {
-      // Use smart distractors
-      optionsList = distractors.map((d: any) => isEn ? d.en : d.cz);
+  const getOptions = (isEn: boolean, type: 'semantic' | 'visual') => {
+    let candidates: string[] = [];
+    
+    if (correctWord.distractors) {
+      if (type === 'semantic') {
+        candidates = correctWord.distractors.semantic.map(d => isEn ? d.en : d.cz);
+      } else {
+        candidates = correctWord.distractors.visual; // Visual always uses EN words
+      }
     }
 
-    // Add other words from vocabulary if we don't have enough distractors
+    // Fallback: Add other words from the main vocabulary
     const otherWords = words
       .filter(w => w.id !== correctWord.id)
       .map(w => isEn ? w.en : w.cz);
     
-    optionsList = shuffleArray([...new Set([...optionsList, ...otherWords])]).slice(0, 3);
-    return shuffleArray([isEn ? correctWord.en : correctWord.cz, ...optionsList]);
+    // Final mixing and slicing
+    let finalPool = [...new Set([...candidates, ...otherWords, ...basicPool])];
+    finalPool = finalPool.filter(w => w.toLowerCase() !== (isEn ? correctWord.en : correctWord.cz).toLowerCase());
+    
+    return shuffleArray([isEn ? correctWord.en : correctWord.cz, ...shuffleArray(finalPool).slice(0, 3)]);
   };
 
   switch (mode) {
@@ -44,7 +51,7 @@ export const generateEnglishProblem = (
         type: mode,
         questionText: correctWord.en,
         correctAnswer: correctWord.cz,
-        options: getOptions(false),
+        options: getOptions(false, 'semantic'),
         audioUrl: correctWord.audio_url
       };
     case 'cz-en':
@@ -53,7 +60,7 @@ export const generateEnglishProblem = (
         type: mode,
         questionText: correctWord.cz,
         correctAnswer: correctWord.en,
-        options: getOptions(true),
+        options: getOptions(true, 'semantic'),
         audioUrl: correctWord.audio_url
       };
     case 'listen':
@@ -62,7 +69,7 @@ export const generateEnglishProblem = (
         type: mode,
         questionText: '?',
         correctAnswer: correctWord.en,
-        options: getOptions(true),
+        options: getOptions(true, 'visual'),
         audioUrl: correctWord.audio_url
       };
     case 'spelling':
