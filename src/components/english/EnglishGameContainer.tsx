@@ -79,7 +79,7 @@ export default function EnglishGameContainer() {
       const { data } = await supabase.from('vocabulary').select('*').order('created_at', { ascending: false });
       if (data) setWords(data as VocabularyWord[]);
     } else {
-      setWords([{ id: '1', en: 'cat', cz: 'kočka', created_at: '2024-01-01', distractors: [] }]);
+      setWords([{ id: '1', en: 'cat', cz: 'kočka', created_at: '2024-01-01', distractors: { semantic: [], visual: [] } }]);
     }
   }, []);
 
