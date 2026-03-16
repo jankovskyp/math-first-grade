@@ -188,11 +188,11 @@ export default function MathGameContainer() {
       <div className="flex flex-col items-center justify-center h-full gap-6 p-6 bg-desk-white font-sans text-board-black relative">
         <div className="absolute top-6 right-6 flex items-center gap-4">
           <div className="flex flex-col items-end leading-none">
-            <h1 className="text-2xl sm:text-3xl font-black italic text-board-black flex items-center gap-1">
+            <h1 className="text-2xl sm:text-3xl font-black italic flex items-center gap-1">
               <span>Chytrý</span>
-              <span className="text-class-green">Školák</span>
+              <span>Školák</span>
             </h1>
-            <span className="text-sm sm:text-base font-bold text-slate-400 uppercase tracking-widest mt-1">Matematika</span>
+            <span className="text-base sm:text-lg font-black text-class-green uppercase tracking-widest mt-1">Matematika</span>
           </div>
           <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12 mix-blend-multiply" />
         </div>
@@ -216,11 +216,11 @@ export default function MathGameContainer() {
       <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black">
         <div className="absolute top-6 right-6 flex items-center gap-4">
           <div className="flex flex-col items-end leading-none">
-            <h1 className="text-2xl sm:text-3xl font-black italic text-board-black flex items-center gap-1">
+            <h1 className="text-2xl sm:text-3xl font-black italic flex items-center gap-1">
               <span>Chytrý</span>
-              <span className="text-class-green">Školák</span>
+              <span>Školák</span>
             </h1>
-            <span className="text-sm sm:text-base font-bold text-slate-400 uppercase tracking-widest mt-1">Matematika</span>
+            <span className="text-base sm:text-lg font-black text-class-green uppercase tracking-widest mt-1">Matematika</span>
           </div>
           <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12 mix-blend-multiply" />
         </div>
@@ -272,11 +272,11 @@ export default function MathGameContainer() {
       <div className="flex flex-col items-center justify-center h-full gap-8 p-6 relative font-sans text-board-black">
         <div className="absolute top-6 right-6 flex items-center gap-4">
           <div className="flex flex-col items-end leading-none">
-            <h1 className="text-2xl sm:text-3xl font-black italic text-board-black flex items-center gap-1">
+            <h1 className="text-2xl sm:text-3xl font-black italic flex items-center gap-1">
               <span>Chytrý</span>
-              <span className="text-class-green">Školák</span>
+              <span>Školák</span>
             </h1>
-            <span className="text-sm sm:text-base font-bold text-slate-400 uppercase tracking-widest mt-1">Matematika</span>
+            <span className="text-base sm:text-lg font-black text-class-green uppercase tracking-widest mt-1">Matematika</span>
           </div>
           <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12 mix-blend-multiply" />
         </div>
