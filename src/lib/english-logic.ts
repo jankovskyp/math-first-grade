@@ -86,6 +86,9 @@ export const generateEnglishProblem = (
     // Mix provided distractors and generated ones
     let finalPool = [...new Set([...candidates, ...generatedDistractors])];
 
+    // Filter out words with special characters (bullets, dashes, numbers, etc)
+    finalPool = finalPool.filter(w => /^[a-z\s]+$/i.test(w));
+
     // Fallback: Add other words from the main vocabulary that have similar length
     if (finalPool.length < 3) {
       const sameLengthWords = words
