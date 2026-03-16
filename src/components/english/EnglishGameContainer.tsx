@@ -5,7 +5,8 @@ import { EnglishGameState, EnglishMode, EnglishProblem, EnglishStats, EnglishLea
 import { generateEnglishProblem, playAudio } from '../../lib/english-logic';
 import { DeskButton } from '../shared/DeskButton';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Target, Frown, Star, Loader2, Volume2, ArrowRight, Calendar, X, ChevronLeft, ChevronRight, Medal, HelpCircle } from 'lucide-react';
+import Image from 'next/image';
+import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Frown, Star, Loader2, Volume2, ArrowRight, Calendar, X, ChevronLeft, ChevronRight, Medal, HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 const LOCAL_STORAGE_KEY = 'english-leaderboard-local-v3';
@@ -259,10 +260,16 @@ export default function EnglishGameContainer() {
 
   if (gameState === 'HOME') {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 font-sans text-board-black relative text-board-black">
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 font-sans relative text-board-black bg-desk-white">
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none">
+            <span>Chytrý</span>
+            <span className="text-[#38BDF8]">Školák</span>
+          </h1>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+        </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20 text-board-black">Angličtina</h1>
         </div>
         <div className="flex flex-col gap-4 w-full max-w-md">
           <DeskButton size="xl" variant="info" onClick={() => { setGameMode('training'); setGameState('SETUP'); }}><Play className="mr-4 w-12 h-12" fill="currentColor" strokeWidth={2.5} /> Trénink</DeskButton>
@@ -276,10 +283,16 @@ export default function EnglishGameContainer() {
   if (gameState === 'LEADERBOARD') {
     const filteredLeaderboard = leaderboardTab === 'all' ? leaderboard : leaderboard.filter(e => e.mode === leaderboardTab);
     return (
-      <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black text-board-black text-board-black">
+      <div className="flex flex-col items-center h-full gap-4 p-4 relative font-sans text-board-black bg-desk-white">
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none hidden sm:flex">
+            <span>Chytrý</span>
+            <span className="text-[#38BDF8]">Školák</span>
+          </h1>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+        </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20 text-board-black">Angličtina</h1>
         </div>
         <h2 className="text-5xl font-black mt-2 italic text-board-black">Síň slávy</h2>
         <div className="flex gap-2 p-1.5 bg-slate-100 rounded-[1.5rem] overflow-x-auto w-full max-w-5xl justify-center text-board-black">
@@ -327,10 +340,16 @@ export default function EnglishGameContainer() {
   if (gameState === 'SETUP') {
     const isCompetition = gameMode === 'competition';
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 relative font-sans text-board-black text-board-black">
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 relative font-sans text-board-black">
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none hidden sm:flex">
+            <span>Chytrý</span>
+            <span className="text-[#38BDF8]">Školák</span>
+          </h1>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+        </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20 text-board-black">Angličtina</h1>
         </div>
         <h2 className="text-6xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
         <div className="flex flex-col gap-3 items-center w-full max-w-xl bg-white p-6 rounded-[2.5rem] border-4 border-slate-50 text-board-black">

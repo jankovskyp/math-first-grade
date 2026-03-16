@@ -5,8 +5,9 @@ import { GameState, GameMode, Operation, NumberRange, Problem, GameStats, Leader
 import { generateProblem } from '@/lib/math-logic';
 import { DeskButton } from '@/components/shared/DeskButton';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Target, Frown, Star, Loader2, Medal } from 'lucide-react';
+import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Frown, Star, Loader2, Medal } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 const LOCAL_STORAGE_KEY = 'math-leaderboard-local';
 
@@ -16,7 +17,7 @@ export default function MathGameContainer() {
   const [gameMode, setGameMode] = useState<GameMode>('training');
   const [range, setRange] = useState<NumberRange>(10);
   const [operations, setOperations] = useState<Operation[]>(['addition', 'subtraction']);
-  
+
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [stats, setStats] = useState<GameStats>({ correct: 0, total: 0, errors: 0, percentage: 0 });
   const [timeLeft, setTimeLeft] = useState(60);
@@ -58,7 +59,7 @@ export default function MathGameContainer() {
   const saveToLeaderboard = async () => {
     if (!playerName.trim()) return;
     setIsLoading(true);
-    
+
     const entry: LeaderboardEntry = {
       id: Math.random().toString(36).substring(2, 9),
       name: playerName.trim().toUpperCase(),
@@ -77,7 +78,7 @@ export default function MathGameContainer() {
     if (isSupabaseConfigured && supabase) {
       try { await supabase.from('leaderboard').insert([{ name: entry.name, score: entry.score, errors: entry.errors, total: entry.total, accuracy: entry.accuracy, range: entry.range }]); } catch (err) { console.error(err); }
     }
-    
+
     setLeaderboardTab('all');
     setGameState('LEADERBOARD');
     setPlayerName('');
@@ -115,9 +116,9 @@ export default function MathGameContainer() {
       setFeedback('correct');
       const newCorrect = !hasErrorInCurrent ? stats.correct + 1 : stats.correct;
       const newTotal = stats.total + 1;
-      
+
       setStats(prev => ({ ...prev, correct: newCorrect, total: newTotal }));
-      
+
       if (gameMode === 'competition') {
         const accuracy = Math.round((newCorrect / newTotal) * 100);
         const rawScore = (newCorrect * 10) - (stats.errors * 5);
@@ -133,11 +134,11 @@ export default function MathGameContainer() {
       setFeedback('wrong');
       setHasErrorInCurrent(true);
       setClickedOptions(prev => new Set(prev).add(answer));
-      
+
       const newErrors = stats.errors + 1;
       const newTotal = stats.total + 1;
       setStats(prev => ({ ...prev, errors: newErrors, total: newTotal }));
-      
+
       if (gameMode === 'competition') {
         const accuracy = Math.round((stats.correct / newTotal) * 100);
         const rawScore = (stats.correct * 10) - (newErrors * 5);
@@ -156,7 +157,7 @@ export default function MathGameContainer() {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       const localList = saved ? JSON.parse(saved) : [];
       const bestScore = localList.length > 0 ? Math.max(...localList.map((e: any) => e.score)) : 0;
-      
+
       if (liveScore > bestScore && liveScore > 0) {
         setShowNewRecord(true);
         setTimeout(() => {
@@ -185,11 +186,17 @@ export default function MathGameContainer() {
   if (gameState === 'HOME') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 p-6 bg-desk-white font-sans text-board-black relative">
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none">
+            <span>Chytrý</span>
+            <span className="text-class-green">Školák</span>
+          </h1>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+        </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-class-green border-4">
             <Home className="w-6 h-6 text-class-green" />
           </DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20">Matematika</h1>
         </div>
         <div className="flex flex-col gap-4 w-full max-w-md">
           <DeskButton size="xl" onClick={() => { setGameMode('training'); setGameState('SETUP'); }}><Play className="mr-4 w-12 h-12" fill="currentColor" strokeWidth={2.5} /> Trénink</DeskButton>
@@ -204,9 +211,17 @@ export default function MathGameContainer() {
     const filteredLeaderboard = leaderboardTab === 'all' ? leaderboard : leaderboard.filter(e => e.range === leaderboardTab);
     return (
       <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black">
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none hidden sm:flex">
+            <span>Chytrý</span>
+            <span className="text-class-green">Školák</span>
+          </h1>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+        </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
-          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20">Matematika</h1>
+          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4">
+            <Home className="w-6 h-6 text-class-green" />
+          </DeskButton>
         </div>
         <h2 className="text-5xl font-black mt-2 italic">Síň slávy</h2>
         <div className="flex gap-3 p-1.5 bg-slate-100 rounded-[1.5rem]">
@@ -221,15 +236,15 @@ export default function MathGameContainer() {
           ) : (
             <div className="flex flex-col gap-2 overflow-y-auto h-full pr-2 text-board-black">
               <div className="flex text-slate-400 font-bold px-4 mb-1 uppercase text-[10px] tracking-[0.2em]">
-                 <span className="w-12 text-center">#</span><span className="flex-1">Jméno</span><span className="w-20 text-center">Úspěch</span><span className="w-16 text-center">Ano</span><span className="w-16 text-center">Ne</span><span className="w-24 text-center font-black">Body</span>
+                <span className="w-12 text-center">#</span><span className="flex-1">Jméno</span><span className="w-20 text-center">Úspěch</span><span className="w-16 text-center">Ano</span><span className="w-16 text-center">Ne</span><span className="w-24 text-center font-black">Body</span>
               </div>
               {filteredLeaderboard.map((entry, i) => (
                 <div key={entry.id} className="flex items-center p-3 bg-slate-50 rounded-xl text-board-black">
                   <span className="w-12 flex justify-center">
                     {i === 0 ? <Medal className="w-8 h-8 text-yellow-400" fill="currentColor" /> :
-                     i === 1 ? <Medal className="w-8 h-8 text-slate-300" fill="currentColor" /> :
-                     i === 2 ? <Medal className="w-8 h-8 text-amber-600" fill="currentColor" /> :
-                     <span className="text-2xl font-black text-slate-300 italic">#{i + 1}</span>}
+                      i === 1 ? <Medal className="w-8 h-8 text-slate-300" fill="currentColor" /> :
+                        i === 2 ? <Medal className="w-8 h-8 text-amber-600" fill="currentColor" /> :
+                          <span className="text-2xl font-black text-slate-300 italic">#{i + 1}</span>}
                   </span>
                   <div className="flex-1 ml-3"><p className="text-xl font-black leading-tight uppercase">{entry.name} <span className="text-[10px] text-slate-300 font-normal">({entry.range})</span></p></div>
                   <div className="w-20 text-center text-xl font-black text-carpet-green bg-class-green/20 py-1 rounded-lg">{entry.accuracy}%</div>
@@ -249,9 +264,15 @@ export default function MathGameContainer() {
     const isCompetition = gameMode === 'competition';
     return (
       <div className="flex flex-col items-center justify-center h-full gap-8 p-6 relative font-sans text-board-black">
+        <div className="absolute top-6 right-6 flex items-center gap-4">
+          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none hidden sm:flex">
+            <span>Chytrý</span>
+            <span className="text-class-green">Školák</span>
+          </h1>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+        </div>
         <div className="absolute top-6 left-6 flex items-center gap-6 text-board-black">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
-          <h1 className="text-5xl font-black italic opacity-20 text-board-black">Matematika</h1>
         </div>
         <h2 className="text-6xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
         <div className="flex flex-col gap-4 items-center">
@@ -280,19 +301,19 @@ export default function MathGameContainer() {
       <div className="flex flex-col h-full relative p-4 font-sans text-board-black">
         <div className="flex justify-between items-center mb-4 text-board-black">
           <div className="flex gap-3 items-center">
-             <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
-             <div className="flex gap-2">
-               <div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><CheckCircle2 className="text-success w-6 h-6" /><span className="text-3xl font-black text-success leading-none">{stats.correct}</span></div>
-               {stats.errors > 0 && (<div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><XCircle className="text-error w-6 h-6" /><span className="text-3xl font-black text-error leading-none">{stats.errors}</span></div>)}
-             </div>
+            <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
+            <div className="flex gap-2">
+              <div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><CheckCircle2 className="text-success w-6 h-6" /><span className="text-3xl font-black text-success leading-none">{stats.correct}</span></div>
+              {stats.errors > 0 && (<div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><XCircle className="text-error w-6 h-6" /><span className="text-3xl font-black text-error leading-none">{stats.errors}</span></div>)}
+            </div>
           </div>
 
           {gameMode === 'competition' && (
             <div className="absolute left-1/2 -translate-x-1/2 top-6 flex flex-col items-center">
-               <div className={`bg-board-black text-white px-8 py-3 rounded-2xl flex items-center gap-4 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
-                  <Star className="w-8 h-8 text-class-green" fill="currentColor" />
-                  <span className="text-5xl font-black">{liveScore}</span>
-               </div>
+              <div className={`bg-board-black text-white px-8 py-3 rounded-2xl flex items-center gap-4 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
+                <Star className="w-8 h-8 text-class-green" fill="currentColor" />
+                <span className="text-5xl font-black">{liveScore}</span>
+              </div>
             </div>
           )}
 
@@ -334,22 +355,22 @@ export default function MathGameContainer() {
         </div>
         <div className="bg-white rounded-[2.5rem] p-6 shadow-2xl border-4 border-slate-50 flex flex-col gap-4 items-center w-full max-w-md text-board-black">
           <div className="grid grid-cols-2 w-full gap-3 text-board-black">
-             <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Správně</span><span className="text-4xl font-black text-success">{stats.correct}</span></div>
-             <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Úspěšnost</span><span className="text-4xl font-black text-carpet-green">{accuracy}%</span></div>
+            <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Správně</span><span className="text-4xl font-black text-success">{stats.correct}</span></div>
+            <div className="bg-slate-50 p-4 rounded-2xl text-center flex flex-col"><span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Úspěšnost</span><span className="text-4xl font-black text-carpet-green">{accuracy}%</span></div>
           </div>
           <div className="flex flex-col items-center gap-1 bg-board-black text-white w-full p-4 rounded-2xl">
-             <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Body</span>
-             <div className="flex items-center gap-3"><Star className="w-6 h-6 text-class-green" fill="currentColor" /><span className="text-5xl font-black">{finalScore}</span></div>
+            <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Body</span>
+            <div className="flex items-center gap-3"><Star className="w-6 h-6 text-class-green" fill="currentColor" /><span className="text-5xl font-black">{finalScore}</span></div>
           </div>
           {gameMode === 'competition' && (
             <div className="flex flex-col gap-3 w-full mt-2 pt-4 border-t-2 border-slate-100">
-               <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value.slice(0, 12))} placeholder="TVOJE JMÉNO" className="w-full text-center text-3xl font-black uppercase py-4 rounded-2xl border-4 border-slate-100 focus:border-class-green outline-none bg-slate-50 text-board-black placeholder:text-slate-200 transition-all" autoFocus />
-               <DeskButton size="lg" variant="secondary" onClick={saveToLeaderboard} disabled={!playerName.trim() || isLoading} className="py-4">
-                  <div className="flex items-center justify-center gap-3 whitespace-nowrap">
-                    {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
-                    <span className="text-xl font-bold uppercase">{isLoading ? 'Ukládám...' : 'Uložit výsledek'}</span>
-                  </div>
-               </DeskButton>
+              <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value.slice(0, 12))} placeholder="TVOJE JMÉNO" className="w-full text-center text-3xl font-black uppercase py-4 rounded-2xl border-4 border-slate-100 focus:border-class-green outline-none bg-slate-50 text-board-black placeholder:text-slate-200 transition-all" autoFocus />
+              <DeskButton size="lg" variant="secondary" onClick={saveToLeaderboard} disabled={!playerName.trim() || isLoading} className="py-4">
+                <div className="flex items-center justify-center gap-3 whitespace-nowrap">
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
+                  <span className="text-xl font-bold uppercase">{isLoading ? 'Ukládám...' : 'Uložit výsledek'}</span>
+                </div>
+              </DeskButton>
             </div>
           )}
         </div>
