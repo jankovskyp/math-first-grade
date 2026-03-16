@@ -129,7 +129,22 @@ export default function EnglishGameContainer() {
     const localSaved = localStorage.getItem(LOCAL_STORAGE_KEY);
     const localList = localSaved ? JSON.parse(localSaved) : [];
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify([...localList, entry].sort((a, b) => b.score - a.score).slice(0, 100)));
-    if (isSupabaseConfigured && supabase) await supabase.from('english_leaderboard').insert([{ ...entry }]);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.from('english_leaderboard').insert([{ 
+          name: entry.name, 
+          score: entry.score, 
+          errors: entry.errors, 
+          total: entry.total, 
+          accuracy: entry.accuracy, 
+          mode: entry.mode,
+          date: entry.date
+        }]);
+        if (error) console.error('Supabase error:', error);
+      } catch (err) {
+        console.error('Insert catch error:', err);
+      }
+    }
     setLeaderboardTab('all');
     setGameState('LEADERBOARD');
     setPlayerName('');
