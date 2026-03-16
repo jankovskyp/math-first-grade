@@ -2,70 +2,88 @@
 
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { createClient } from '@supabase/supabase-js';
-import { translateWord } from './translate';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// A pool of basic words for kids to fallback on or mix in
-const BASIC_POOL = [
-  'cat', 'dog', 'apple', 'ball', 'red', 'blue', 'green', 'one', 'two', 'three', 
-  'home', 'tree', 'sun', 'book', 'car', 'milk', 'water', 'fish', 'bird', 'pen',
-  'box', 'star', 'cake', 'egg', 'hat', 'frog', 'jump', 'run', 'smile', 'love'
-];
+// Logic to generate similar-looking/sounding words
+function generateVisualDistractors(word: string): string[] {
+  const misspellings = new Set<string>();
+  const vowels = ['a', 'e', 'i', 'o', 'u', 'y'];
+  const baseWord = word.trim().toLowerCase();
 
-async function getDistractors(en: string) {
-  try {
-    // 1. Fetch related words (means-like and triggers)
-    const [mlRes, trgRes] = await Promise.all([
-      fetch(`https://api.datamuse.com/words?ml=${encodeURIComponent(en)}&max=30`),
-      fetch(`https://api.datamuse.com/words?rel_trg=${encodeURIComponent(en)}&max=30`)
-    ]);
-    
-    const mlData = await mlRes.json();
-    const trgData = await trgRes.json();
-    
-    let candidates = [...mlData, ...trgData]
-      .map((item: any) => item.word.toLowerCase())
-      // Filter out duplicates, the word itself, multi-word phrases and very short/long strings
-      .filter((word: string, index: number, self: string[]) => 
-        self.indexOf(word) === index && 
-        word !== en.toLowerCase() && 
-        !word.includes(' ') && 
-        !word.includes('-') &&
-        word.length > 1 &&
-        word.length < 12
-      );
-
-    // 2. Mix with BASIC_POOL to ensure we have enough simple words
-    const randomBasics = BASIC_POOL
-      .filter(w => w !== en.toLowerCase())
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 10);
-    
-    candidates = [...new Set([...candidates, ...randomBasics])].slice(0, 25);
-
-    // 3. Translate candidates
-    // We limit parallel translations to avoid API rate limits
-    const translatedDistractors = [];
-    for (const word of candidates) {
-      const cz = await translateWord(word);
-      // Only keep if translation is different from English (avoids gibberish like 'iee' -> 'iee')
-      if (cz && cz.toLowerCase() !== word.toLowerCase()) {
-        translatedDistractors.push({ en: word, cz });
-      }
-      if (translatedDistractors.length >= 20) break;
+  // 1. Double letters or remove double letters
+  for (let i = 0; i < baseWord.length - 1; i++) {
+    if (baseWord[i] === baseWord[i + 1]) {
+      misspellings.add(baseWord.slice(0, i) + baseWord.slice(i + 1)); // remove one
+    } else {
+      misspellings.add(baseWord.slice(0, i + 1) + baseWord[i] + baseWord.slice(i + 1)); // double it
     }
-
-    return translatedDistractors;
-  } catch (err) {
-    console.error('Distractor generation error:', err);
-    return BASIC_POOL.slice(0, 10).map(w => ({ en: w, cz: w })); // Minimal fallback
   }
+
+  // 2. Replace vowels with other vowels
+  for (let i = 0; i < baseWord.length; i++) {
+    if (vowels.includes(baseWord[i])) {
+      vowels.filter(v => v !== baseWord[i]).forEach(v => {
+        misspellings.add(baseWord.slice(0, i) + v + baseWord.slice(i + 1));
+      });
+    }
+  }
+
+  // 3. Swap adjacent letters
+  for (let i = 0; i < baseWord.length - 1; i++) {
+    misspellings.add(baseWord.slice(0, i) + baseWord[i + 1] + baseWord[i] + baseWord.slice(i + 2));
+  }
+
+  // 4. Common phonetic substitutions
+  const phoneticMap: Record<string, string[]> = {
+    'ph': ['f'], 'f': ['ph', 'v'], 'c': ['k', 's'], 'k': ['c'], 's': ['c', 'z'], 'z': ['s'],
+    'ea': ['ee', 'e'], 'ee': ['ea', 'i'], 'ou': ['ow', 'o'], 'ow': ['ou'], 'th': ['d', 't', 'f'],
+    'ch': ['sh', 'tch'], 'sh': ['ch'], 'w': ['v'], 'v': ['w'], 'i': ['y'], 'y': ['i', 'j']
+  };
+
+  for (const [key, values] of Object.entries(phoneticMap)) {
+    if (baseWord.includes(key)) {
+      values.forEach(val => {
+        misspellings.add(baseWord.replace(key, val));
+      });
+    }
+  }
+
+  // 5. Remove one letter (for words > 2 letters)
+  if (baseWord.length > 2) {
+    for (let i = 0; i < baseWord.length; i++) {
+      misspellings.add(baseWord.slice(0, i) + baseWord.slice(i + 1));
+    }
+  }
+
+  return Array.from(misspellings)
+    .filter(v => v !== baseWord && v.length > (baseWord.length > 2 ? 1 : 0))
+    .sort(() => 0.5 - Math.random())
+    .slice(0, 15);
 }
 
-export async function addVocabularyWord(en: string, cz: string) {
-  if (!en || !cz) return { error: 'Chybí slovíčka' };
+async function getEnhancedDistractors(en: string) {
+  const enLower = en.toLowerCase().trim();
+
+  // Try to get real similar words from Datamuse (sounds like)
+  let soundsLike: string[] = [];
+  try {
+    const res = await fetch(`https://api.datamuse.com/words?sl=${encodeURIComponent(enLower)}&max=10`);
+    const data = await res.json();
+    soundsLike = data.map((item: any) => item.word.toLowerCase());
+  } catch (_) { }
+
+  // Mix real words with generated variations
+  const visual = [...new Set([...generateVisualDistractors(enLower), ...soundsLike])]
+    .filter((w: string) => /^[a-z\s]+$/i.test(w) && w !== enLower && w.length > 1)
+    .slice(0, 20);
+
+  return visual;
+}
+
+export async function addVocabularyWord(en: string) {
+  if (!en) return { error: 'Chybí slovíčko' };
   if (!supabaseServiceKey) return { error: 'Chybí klíč SUPABASE_SERVICE_ROLE_KEY' };
 
   try {
@@ -78,37 +96,16 @@ export async function addVocabularyWord(en: string, cz: string) {
       .eq('en', enNormalized)
       .maybeSingle();
 
-    if (existing) {
-      return { error: `Slovíčko "${enNormalized}" už v databázi existuje!` };
-    }
+    if (existing) return { error: `Slovíčko "${enNormalized}" už existuje!` };
 
-    const distractors = await getDistractors(enNormalized);
-
-    const fileName = `${Date.now()}-${enNormalized.replace(/[^a-z0-9]/gi, '_')}.mp3`;
-    const tts: any = new MsEdgeTTS();
-    await tts.setMetadata("en-US-AvaNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    
-    const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
-      const { audioStream } = tts.toStream(enNormalized);
-      const chunks: Buffer[] = [];
-      audioStream.on("data", (chunk: Buffer) => chunks.push(chunk));
-      audioStream.on("end", () => resolve(Buffer.concat(chunks)));
-      audioStream.on("error", reject);
-    });
-
-    const { error: uploadError } = await supabase.storage
-      .from('audio')
-      .upload(fileName, audioBuffer, { contentType: 'audio/mpeg' });
-
-    if (uploadError) throw uploadError;
-    const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
+    const distractors = await getEnhancedDistractors(enNormalized);
+    const audioUrl = await generateAndUploadAudio(enNormalized, supabase);
 
     const { data, error: dbError } = await supabase
       .from('vocabulary')
-      .insert([{ 
-        en: enNormalized, 
-        cz: cz.trim().toLowerCase(), 
-        audio_url: publicUrl,
+      .insert([{
+        en: enNormalized,
+        audio_url: audioUrl,
         distractors: distractors,
         created_at: new Date().toISOString()
       }])
@@ -119,5 +116,54 @@ export async function addVocabularyWord(en: string, cz: string) {
   } catch (err: any) {
     console.error('Error in addVocabularyWord:', err);
     return { error: err.message || 'Nepodařilo se přidat slovíčko' };
+  }
+}
+
+async function generateAndUploadAudio(en: string, supabase: any) {
+  const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.mp3`;
+  const tts: any = new MsEdgeTTS();
+  await tts.setMetadata("en-US-AvaNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+
+  const audioBuffer = await new Promise<Buffer>((resolve, reject) => {
+    const { audioStream } = tts.toStream(en);
+    const chunks: Buffer[] = [];
+    audioStream.on("data", (chunk: Buffer) => chunks.push(chunk));
+    audioStream.on("end", () => resolve(Buffer.concat(chunks)));
+    audioStream.on("error", reject);
+  });
+
+  const { error: uploadError } = await supabase.storage
+    .from('audio')
+    .upload(fileName, audioBuffer, { contentType: 'audio/mpeg' });
+
+  if (uploadError) throw uploadError;
+  const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
+  return publicUrl;
+}
+
+export async function adminRegenerateAll() {
+  if (!supabaseServiceKey) return { error: 'Unauthorized' };
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  try {
+    const { data: words, error: fetchError } = await supabase.from('vocabulary').select('*');
+    if (fetchError) throw fetchError;
+
+    let updatedCount = 0;
+    for (const word of (words || [])) {
+      const distractors = await getEnhancedDistractors(word.en);
+      const audioUrl = word.audio_url || await generateAndUploadAudio(word.en, supabase);
+
+      await supabase.from('vocabulary').update({
+        distractors,
+        audio_url: audioUrl
+      }).eq('id', word.id);
+      updatedCount++;
+    }
+
+    return { success: true, count: updatedCount };
+  } catch (err: any) {
+    console.error('Admin regenerate error:', err);
+    return { error: err.message };
   }
 }

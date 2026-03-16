@@ -9,17 +9,17 @@ const baloo = Baloo_2({
 });
 
 export const metadata: Metadata = {
-  title: "Prvňáček Matika",
-  description: "Zábavné procvičování matematiky pro 1. třídu",
+  title: "Chytrý Školák",
+  description: "Zábavné učení matematiky a angličtiny",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Matika",
+    title: "Chytrý Školák",
   },
 };
 

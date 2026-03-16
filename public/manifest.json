@@ -1,16 +1,16 @@
 {
-  "name": "Prvňáček Matika",
-  "short_name": "Matika",
-  "description": "Zábavná matematika pro 1. třídu",
+  "name": "Chytrý Školák",
+  "short_name": "Školák",
+  "description": "Zábavné učení matematiky a angličtiny",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",
-  "theme_color": "#A3E635",
+  "theme_color": "#38BDF8",
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

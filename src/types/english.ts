@@ -1,12 +1,11 @@
-export type EnglishMode = 'en-cz' | 'cz-en' | 'listen' | 'spelling';
+export type EnglishMode = 'listen' | 'spelling';
 
 export interface VocabularyWord {
   id: string;
   en: string;
-  cz: string;
-  audio_url?: string; // New field for Cloud Storage URL
+  audio_url?: string;
   created_at: string;
-  distractors?: { en: string; cz: string }[];
+  distractors?: string[]; // Only visual/phonetic similar words
 }
 
 export interface EnglishProblem {
@@ -15,7 +14,7 @@ export interface EnglishProblem {
   questionText: string;
   correctAnswer: string;
   options?: string[];
-  audioUrl?: string; // Changed from audioText to audioUrl
+  audioUrl?: string;
 }
 
 export type EnglishGameState = 'HOME' | 'SETUP' | 'PLAYING' | 'RESULTS' | 'LEADERBOARD';
