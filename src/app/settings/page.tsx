@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { DeskButton } from '@/components/shared/DeskButton';
 import { Home, Plus, Trash2, Loader2, Calendar, Volume2, RefreshCw, AlertCircle, Lock, Unlock } from 'lucide-react';
@@ -28,14 +28,12 @@ export default function SettingsPage() {
     }
   };
 
-  useEffect(() => {
-    if (isAuthorized) fetchWords();
-  }, [isAuthorized]);
-
-  const handleAuth = () => {
+  const handleAuth = (e: React.FormEvent) => {
+    e.preventDefault();
     if (password === '0808') {
       setIsAuthorized(true);
       setAuthError(false);
+      fetchWords();
     } else {
       setAuthError(true);
       setPassword('');
@@ -76,7 +74,7 @@ export default function SettingsPage() {
         try {
           const fileName = audioUrl.split('/').pop();
           if (fileName) await supabase.storage.from('audio').remove([fileName]);
-        } catch (e) { }
+        } catch { }
       }
       fetchWords();
     }
@@ -127,7 +125,7 @@ export default function SettingsPage() {
 
   // Admin Screen (Authorized)
   return (
-    <main className="h-screen w-screen bg-slate-50 flex flex-col p-6 font-sans text-slate-900 overflow-hidden text-board-black">
+    <main className="h-screen w-screen bg-slate-50 flex flex-col p-6 pt-28 font-sans text-slate-900 overflow-hidden text-board-black">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-slate-400 text-board-black">

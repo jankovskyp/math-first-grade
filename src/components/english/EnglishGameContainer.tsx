@@ -274,16 +274,7 @@ export default function EnglishGameContainer() {
   if (gameState === 'HOME') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 p-6 font-sans relative text-board-black bg-desk-white">
-        <div className="absolute top-6 right-6 flex items-center gap-4">
-          <div className="flex flex-col items-end leading-none">
-            <h1 className="text-2xl sm:text-3xl font-black italic flex items-center gap-1">
-              <span>Chytrý</span>
-              <span>Školák</span>
-            </h1>
-            <span className="text-base sm:text-lg font-black text-[#38BDF8] uppercase tracking-widest mt-1">Angličtina</span>
-          </div>
-          <Image src="/icon.png" alt="Orel" width={64} height={64} className="w-14 h-14 sm:w-16 sm:h-16 mix-blend-multiply" />
-        </div>
+
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
         </div>
