@@ -8,7 +8,8 @@ export function GlobalHeader() {
     const pathname = usePathname();
     const { player, setPlayer } = usePlayer();
 
-    if (!player || pathname === '/login' || pathname === '/register') return null;
+    const isGameplay = pathname === '/math' || pathname === '/english';
+    if (!player || pathname === '/login' || pathname === '/register' || isGameplay) return null;
 
     return (
         <div className="absolute top-6 left-0 right-0 z-50 flex justify-between items-start px-6 pointer-events-none">

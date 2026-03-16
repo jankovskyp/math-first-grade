@@ -304,7 +304,7 @@ export default function EnglishGameContainer() {
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-[#38BDF8] border-4"><Home className="w-6 h-6 text-[#38BDF8]" /></DeskButton>
         </div>
-        <h2 className="text-5xl font-black mt-2 italic text-board-black">Síň slávy</h2>
+        <h2 className="text-5xl font-black mt-20 italic text-board-black">Síň slávy</h2>
         <div className="flex gap-2 p-1.5 bg-slate-100 rounded-[1.5rem] overflow-x-auto w-full max-w-5xl justify-center text-board-black">
           <DeskButton size="md" variant={leaderboardTab === 'all' ? 'info' : 'outline'} className={`border-none shadow-none py-2 px-4 whitespace-nowrap ${leaderboardTab !== 'all' ? 'border-[#38BDF8] text-[#38BDF8]' : ''}`} onClick={() => setLeaderboardTab('all')}>Všechno</DeskButton>
           {(['listen', 'spelling'] as const).map(m => {

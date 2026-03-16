@@ -243,7 +243,7 @@ export default function MathGameContainer() {
             <Home className="w-6 h-6 text-class-green" />
           </DeskButton>
         </div>
-        <h2 className="text-5xl font-black mt-2 italic">Síň slávy</h2>
+        <h2 className="text-5xl font-black mt-20 italic">Síň slávy</h2>
         <div className="flex gap-3 p-1.5 bg-slate-100 rounded-[1.5rem]">
           <DeskButton size="md" variant={leaderboardTab === 'all' ? 'primary' : 'outline'} className="border-none shadow-none py-2 px-6" onClick={() => setLeaderboardTab('all')}>Všechno</DeskButton>
           {[10, 20, 100].map(r => (<DeskButton key={r} size="md" variant={leaderboardTab === r ? 'primary' : 'outline'} className="border-none shadow-none py-2 px-6" onClick={() => setLeaderboardTab(r as NumberRange)}>Do {r}</DeskButton>))}
