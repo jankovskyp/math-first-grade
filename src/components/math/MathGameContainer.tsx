@@ -187,11 +187,14 @@ export default function MathGameContainer() {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 p-6 bg-desk-white font-sans text-board-black relative">
         <div className="absolute top-6 right-6 flex items-center gap-4">
-          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none">
-            <span>Chytrý</span>
-            <span className="text-class-green">Školák</span>
-          </h1>
-          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+          <div className="flex flex-col items-end leading-none">
+            <h1 className="text-2xl sm:text-3xl font-black italic text-board-black flex items-center gap-1">
+              <span>Chytrý</span>
+              <span className="text-class-green">Školák</span>
+            </h1>
+            <span className="text-sm sm:text-base font-bold text-slate-400 uppercase tracking-widest mt-1">Matematika</span>
+          </div>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12 mix-blend-multiply" />
         </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-class-green border-4">
@@ -212,11 +215,14 @@ export default function MathGameContainer() {
     return (
       <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black">
         <div className="absolute top-6 right-6 flex items-center gap-4">
-          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none hidden sm:flex">
-            <span>Chytrý</span>
-            <span className="text-class-green">Školák</span>
-          </h1>
-          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+          <div className="flex flex-col items-end leading-none">
+            <h1 className="text-2xl sm:text-3xl font-black italic text-board-black flex items-center gap-1">
+              <span>Chytrý</span>
+              <span className="text-class-green">Školák</span>
+            </h1>
+            <span className="text-sm sm:text-base font-bold text-slate-400 uppercase tracking-widest mt-1">Matematika</span>
+          </div>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12 mix-blend-multiply" />
         </div>
         <div className="absolute top-6 left-6 flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4">
@@ -265,11 +271,14 @@ export default function MathGameContainer() {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-8 p-6 relative font-sans text-board-black">
         <div className="absolute top-6 right-6 flex items-center gap-4">
-          <h1 className="text-3xl font-black italic text-board-black flex flex-col items-end leading-none hidden sm:flex">
-            <span>Chytrý</span>
-            <span className="text-class-green">Školák</span>
-          </h1>
-          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-12 h-12 mix-blend-multiply" />
+          <div className="flex flex-col items-end leading-none">
+            <h1 className="text-2xl sm:text-3xl font-black italic text-board-black flex items-center gap-1">
+              <span>Chytrý</span>
+              <span className="text-class-green">Školák</span>
+            </h1>
+            <span className="text-sm sm:text-base font-bold text-slate-400 uppercase tracking-widest mt-1">Matematika</span>
+          </div>
+          <Image src="/icon.png" alt="Orel" width={48} height={48} className="w-10 h-10 sm:w-12 sm:h-12 mix-blend-multiply" />
         </div>
         <div className="absolute top-6 left-6 flex items-center gap-6 text-board-black">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
