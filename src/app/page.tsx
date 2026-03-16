@@ -11,7 +11,7 @@ export default function MainMenu() {
   return (
     <main className="h-screen w-screen bg-desk-white overflow-hidden flex flex-col items-center justify-center p-6 font-sans text-board-black">
       <div className="flex items-center gap-6 mb-10">
-        <Image src="/icon.png" alt="Orel" width={120} height={120} className="w-28 h-28 drop-shadow-sm" priority />
+        <Image src="/icon.png" alt="Orel" width={120} height={120} className="w-28 h-28 drop-shadow-sm mix-blend-multiply" priority />
         <h1 className="text-8xl font-black italic drop-shadow-sm">Chytrý Školák</h1>
       </div>
 
