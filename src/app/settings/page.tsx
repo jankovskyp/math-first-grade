@@ -125,7 +125,7 @@ export default function SettingsPage() {
 
   // Admin Screen (Authorized)
   return (
-    <main className="h-screen w-screen bg-slate-50 flex flex-col p-6 pt-28 font-sans text-slate-900 overflow-hidden text-board-black">
+    <main className="h-screen w-screen bg-slate-50 flex flex-col p-6 pt-6 font-sans text-slate-900 overflow-hidden text-board-black">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-6">
           <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-slate-400 text-board-black">
@@ -138,9 +138,6 @@ export default function SettingsPage() {
             {isAdminWorking ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <RefreshCw className="w-6 h-6 mr-3" />}
             Regenerovat vše
           </DeskButton>
-          <button onClick={() => setIsAuthorized(false)} className="bg-slate-200 p-4 rounded-2xl text-slate-500 hover:bg-slate-300 transition-all">
-            <Unlock className="w-6 h-6" />
-          </button>
         </div>
       </div>
 
