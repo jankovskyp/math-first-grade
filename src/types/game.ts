@@ -24,6 +24,8 @@ export interface GameStats {
 export interface LeaderboardEntry {
   id: string;
   name: string;
+  player_id?: string;
+  avatar?: string;
   score: number;      // Correct answers
   errors: number;     // Wrong answers
   total: number;      // Total attempts

@@ -71,8 +71,8 @@ async function getEnhancedDistractors(en: string) {
   try {
     const res = await fetch(`https://api.datamuse.com/words?sl=${encodeURIComponent(enLower)}&max=10`);
     const data = await res.json();
-    soundsLike = data.map((item: any) => item.word.toLowerCase());
-  } catch (_) { }
+    soundsLike = data.map((item: { word: string }) => item.word.toLowerCase());
+  } catch { }
 
   // Mix real words with generated variations
   const visual = [...new Set([...generateVisualDistractors(enLower), ...soundsLike])]
@@ -113,14 +113,17 @@ export async function addVocabularyWord(en: string) {
 
     if (dbError) throw dbError;
     return { success: true, data };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Error in addVocabularyWord:', err);
-    return { error: err.message || 'Nepodařilo se přidat slovíčko' };
+    return { error: (err as Error).message || 'Nepodařilo se přidat slovíčko' };
   }
 }
 
-async function generateAndUploadAudio(en: string, supabase: any) {
+import { SupabaseClient } from '@supabase/supabase-js';
+
+async function generateAndUploadAudio(en: string, supabase: SupabaseClient) {
   const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.mp3`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tts: any = new MsEdgeTTS();
   await tts.setMetadata("en-US-AvaNeural", OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
 
@@ -162,8 +165,8 @@ export async function adminRegenerateAll() {
     }
 
     return { success: true, count: updatedCount };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Admin regenerate error:', err);
-    return { error: err.message };
+    return { error: (err as Error).message };
   }
 }

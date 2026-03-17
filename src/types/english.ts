@@ -29,6 +29,8 @@ export interface EnglishStats {
 export interface EnglishLeaderboardEntry {
   id: string;
   name: string;
+  player_id?: string;
+  avatar?: string;
   score: number;
   errors: number;
   total: number;

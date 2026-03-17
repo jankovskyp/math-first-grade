@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Baloo_2 } from "next/font/google";
 import "./globals.css";
+import { PlayerProvider } from "@/context/PlayerContext";
 
 const baloo = Baloo_2({
   variable: "--font-baloo",
@@ -38,7 +39,9 @@ export default function RootLayout({
   return (
     <html lang="cs">
       <body className={`${baloo.variable} antialiased overflow-hidden fixed inset-0 font-sans`}>
-        {children}
+        <PlayerProvider>
+          {children}
+        </PlayerProvider>
       </body>
     </html>
   );
