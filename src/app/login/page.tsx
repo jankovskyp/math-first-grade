@@ -150,8 +150,8 @@ export default function LoginScreen() {
 
             <div className="w-full max-w-5xl items-center flex flex-col relative z-0 mt-8 sm:mt-0">
                 <div className="flex items-center gap-6 mb-10 w-full justify-center">
-                    <Image src="/icon.png" alt="Sova" width={100} height={100} className="w-20 h-20 sm:w-28 sm:h-28 mix-blend-multiply" priority />
-                    <h1 className="text-5xl sm:text-7xl md:text-8xl font-black italic drop-shadow-sm text-center">Chytrý Školák</h1>
+                    <Image src="/icon.png" alt="Sova" width={64} height={64} className="w-14 h-14 mix-blend-multiply" priority />
+                    <h1 className="text-4xl sm:text-5xl font-black italic drop-shadow-sm text-center">Chytrý Školák</h1>
                 </div>
 
                 {!selectedPlayer ? (
