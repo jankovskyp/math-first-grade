@@ -7,7 +7,7 @@ import { DeskButton } from '../shared/DeskButton';
 import { SubjectHeader } from '../shared/SubjectHeader';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import Image from 'next/image';
-import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Save, Frown, Star, Loader2, Volume2, ArrowRight, X, ChevronLeft, ChevronRight, Medal, HelpCircle } from 'lucide-react';
+import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Frown, Star, Loader2, Volume2, ArrowRight, X, ChevronLeft, ChevronRight, Medal, HelpCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/context/PlayerContext';
 
@@ -161,8 +161,6 @@ export default function EnglishGameContainer() {
         if (error) console.error(error);
       } catch (err: unknown) { console.error(err); }
     }
-    setLeaderboardTab('all');
-    setGameState('LEADERBOARD');
     setIsLoading(false);
   };
 
@@ -247,17 +245,25 @@ export default function EnglishGameContainer() {
     if (gameState === 'PLAYING' && gameMode === 'competition' && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (timeLeft === 0 && gameState === 'PLAYING') {
+      // Check personal best for this player + mode
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const localList = saved ? JSON.parse(saved) : [];
-      const bestScore = localList.length > 0 ? Math.max(...localList.map((e: EnglishLeaderboardEntry) => e.score)) : 0;
-      if (liveScore > bestScore && liveScore > 0) {
-        setShowNewRecord(true);
-        setTimeout(() => { setShowNewRecord(false); setGameState('RESULTS'); }, 5000);
-      } else {
-        setGameState('RESULTS');
-      }
+      const localList: (EnglishLeaderboardEntry & { player_id?: string })[] = saved ? JSON.parse(saved) : [];
+      const personalBest = localList
+        .filter(e => e.player_id === player?.id && e.mode === selectedMode)
+        .reduce((best, e) => Math.max(best, e.score), 0);
+      const isNewRecord = liveScore > personalBest && liveScore > 0;
+      if (isNewRecord) setShowNewRecord(true);
+      // Always save automatically
+      saveToLeaderboard().then(() => {
+        if (isNewRecord) {
+          setTimeout(() => { setShowNewRecord(false); setGameState('RESULTS'); }, 5000);
+        } else {
+          setGameState('RESULTS');
+        }
+      });
     }
     return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, gameMode, timeLeft, liveScore]);
 
   // --- Render ---
@@ -461,14 +467,8 @@ export default function EnglishGameContainer() {
             <div className="flex items-center gap-3"><Star className="w-6 h-6 text-[#38BDF8]" fill="currentColor" /><span className="text-5xl font-black text-white">{finalScore}</span></div>
           </div>
           {gameMode === 'competition' && (
-            <div className="flex flex-col gap-3 w-full mt-2 pt-4 border-t-2 border-slate-100 items-center">
-              <p className="text-xl font-bold text-slate-400">Hraješ jako <span className="text-[#38BDF8]">{player?.username}</span></p>
-              <DeskButton size="lg" variant="secondary" onClick={saveToLeaderboard} disabled={isLoading} className="py-4 w-full">
-                <div className="flex items-center justify-center gap-3 whitespace-nowrap">
-                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
-                  <span className="text-xl font-bold uppercase">{isLoading ? 'Ukládám...' : 'Uložit výsledek'}</span>
-                </div>
-              </DeskButton>
+            <div className="flex flex-col gap-2 w-full mt-2 pt-4 border-t-2 border-slate-100 items-center">
+              <p className="text-xl font-bold text-slate-400">Uloženo jako <span className="text-[#38BDF8]">{player?.username}</span></p>
             </div>
           )}
         </div>
