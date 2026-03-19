@@ -184,14 +184,14 @@ export default function MathGameContainer() {
         .reduce((best, e) => Math.max(best, e.score), 0);
       const isNewRecord = liveScore > personalBest && liveScore > 0;
       if (isNewRecord) setShowNewRecord(true);
-      // Always save automatically
-      saveToLeaderboard().then(() => {
-        if (isNewRecord) {
+      // Only save when it's a new personal record
+      if (isNewRecord) {
+        saveToLeaderboard().then(() => {
           setTimeout(() => { setShowNewRecord(false); setGameState('RESULTS'); }, 5000);
-        } else {
-          setGameState('RESULTS');
-        }
-      });
+        });
+      } else {
+        setGameState('RESULTS');
+      }
     }
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -228,7 +228,28 @@ export default function MathGameContainer() {
   }
 
   if (gameState === 'LEADERBOARD') {
-    const filteredLeaderboard = leaderboardTab === 'all' ? leaderboard : leaderboard.filter(e => e.range === leaderboardTab);
+    // Deduplicate: one best entry per player per range
+    const deduped = (entries: typeof leaderboard) => {
+      const map = new Map<string, typeof leaderboard[0]>();
+      for (const e of entries) {
+        const key = `${e.player_id ?? e.name}-${e.range}`;
+        const existing = map.get(key);
+        if (!existing || e.score > existing.score) map.set(key, e);
+      }
+      return Array.from(map.values()).sort((a, b) => b.score - a.score);
+    };
+    const bestPerPlayer = (entries: typeof leaderboard) => {
+      const map = new Map<string, typeof leaderboard[0]>();
+      for (const e of entries) {
+        const key = e.player_id ?? e.name;
+        const existing = map.get(key);
+        if (!existing || e.score > existing.score) map.set(key, e);
+      }
+      return Array.from(map.values()).sort((a, b) => b.score - a.score);
+    };
+    const filteredLeaderboard = leaderboardTab === 'all'
+      ? bestPerPlayer(leaderboard)
+      : deduped(leaderboard.filter(e => e.range === leaderboardTab));
     return (
       <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black">
         <SubjectHeader subject="Matematika" subjectColor="#84cc16" />
