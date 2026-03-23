@@ -88,9 +88,11 @@ export default function EnglishGameContainer() {
 
   const fetchLeaderboard = useCallback(async () => {
     setIsLoading(true);
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const localData: (EnglishLeaderboardEntry & { player_id?: string })[] = saved ? JSON.parse(saved) : [];
+
     if (!isSupabaseConfigured || !supabase) {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      setLeaderboard(saved ? JSON.parse(saved) : []);
+      setLeaderboard(localData);
       setIsLoading(false);
       return;
     }
@@ -104,17 +106,19 @@ export default function EnglishGameContainer() {
         .order('score', { ascending: false })
         .limit(100);
 
-      if (error) console.error(error);
-      if (data) {
+      if (error) throw error;
+      if (data && data.length > 0) {
         const mapped = data.map((d: { players?: { avatar?: string } } & Record<string, unknown>) => ({
           ...d,
           avatar: d.players?.avatar
         }));
         setLeaderboard(mapped as EnglishLeaderboardEntry[]);
+      } else {
+        // Supabase returned nothing — show localStorage data
+        setLeaderboard(localData);
       }
     } catch {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      setLeaderboard(saved ? JSON.parse(saved) : []);
+      setLeaderboard(localData);
     } finally {
       setIsLoading(false);
     }
@@ -256,7 +260,11 @@ export default function EnglishGameContainer() {
       // Only save when it's a new personal record
       if (isNewRecord) {
         saveToLeaderboard().then(() => {
-          setTimeout(() => { setShowNewRecord(false); setGameState('RESULTS'); }, 5000);
+          setTimeout(() => {
+            setShowNewRecord(false);
+            setLeaderboardTab('all');
+            setGameState('LEADERBOARD');
+          }, 4000);
         });
       } else {
         setGameState('RESULTS');
