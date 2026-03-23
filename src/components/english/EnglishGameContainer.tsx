@@ -166,6 +166,7 @@ export default function EnglishGameContainer() {
           total: entry.total,
           accuracy: entry.accuracy,
           mode: entry.mode,
+          date: entry.date,
           player_id: player?.id
         }]);
         if (error) console.error('[ENG-SAVE] Supabase insert error:', error);
