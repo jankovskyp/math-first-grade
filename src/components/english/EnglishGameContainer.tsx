@@ -135,16 +135,16 @@ export default function EnglishGameContainer() {
 
   const filteredCount = getFilteredWords().length;
 
-  const saveToLeaderboard = async () => {
+  const saveToLeaderboard = async (scoreToSave: number, modeToSave: EnglishMode) => {
     setIsLoading(true);
     const entry: EnglishLeaderboardEntry & { player_id?: string } = {
       id: Math.random().toString(36).substring(2, 9),
       name: player?.username || 'NEZNÁMÝ HRÁČ',
-      score: liveScore,
+      score: scoreToSave,
       errors: stats.errors,
       total: stats.total,
       accuracy: Math.round((stats.correct / (stats.total || 1)) * 100),
-      mode: selectedMode,
+      mode: modeToSave,
       date: new Date().toLocaleDateString('cs-CZ'),
       player_id: player?.id
     };
@@ -162,8 +162,8 @@ export default function EnglishGameContainer() {
           mode: entry.mode,
           player_id: player?.id
         }]);
-        if (error) console.error(error);
-      } catch (err: unknown) { console.error(err); }
+        if (error) console.error('Supabase english_leaderboard insert error:', error);
+      } catch (err: unknown) { console.error('Supabase insert exception:', err); }
     }
     setIsLoading(false);
   };
@@ -259,7 +259,7 @@ export default function EnglishGameContainer() {
       if (isNewRecord) setShowNewRecord(true);
       // Only save when it's a new personal record
       if (isNewRecord) {
-        saveToLeaderboard().then(() => {
+        saveToLeaderboard(liveScore, selectedMode).then(() => {
           setTimeout(() => {
             setShowNewRecord(false);
             setLeaderboardTab('all');
