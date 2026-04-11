@@ -1,4 +1,5 @@
-export type Operation = 'addition' | 'subtraction' | 'comparison';
+export type Operation = 'addition' | 'subtraction' | 'comparison' | 'decomposition';
+export type DecompositionVariant = 'easy' | 'hard';
 export type NumberRange = 10 | 20 | 100;
 
 export interface Problem {
@@ -9,6 +10,7 @@ export interface Problem {
   result: number | string;
   options: (number | string)[];
   displayOperator: string;
+  decompositionVariant?: DecompositionVariant;
 }
 
 export type GameMode = 'training' | 'competition';

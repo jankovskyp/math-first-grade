@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { GameState, GameMode, Operation, NumberRange, Problem, GameStats, LeaderboardEntry } from '@/types/game';
+import { GameState, GameMode, Operation, NumberRange, Problem, GameStats, LeaderboardEntry, DecompositionVariant } from '@/types/game';
 import { generateProblem } from '@/lib/math-logic';
 import { DeskButton } from '@/components/shared/DeskButton';
 import { SubjectHeader } from '@/components/shared/SubjectHeader';
@@ -19,6 +19,8 @@ export default function MathGameContainer() {
   const [gameMode, setGameMode] = useState<GameMode>('training');
   const [range, setRange] = useState<NumberRange>(10);
   const [operations, setOperations] = useState<Operation[]>(['addition', 'subtraction']);
+  const [decompositionVariant, setDecompositionVariant] = useState<DecompositionVariant>('easy');
+  const [withCarrying, setWithCarrying] = useState<boolean>(true);
 
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [stats, setStats] = useState<GameStats>({ correct: 0, total: 0, errors: 0, percentage: 0 });
@@ -116,7 +118,10 @@ export default function MathGameContainer() {
     setTimeLeft(60);
     const activeOps: Operation[] = mode === 'competition' ? ['addition', 'subtraction', 'comparison'] : operations;
     setGameState('PLAYING');
-    setCurrentProblem(generateProblem(range, activeOps));
+    setCurrentProblem(generateProblem(range, activeOps, {
+      withCarrying: mode === 'competition' ? true : withCarrying,
+      decompositionVariant,
+    }));
     setFeedback(null);
     setClickedOptions(new Set());
     setHasErrorInCurrent(false);
@@ -127,8 +132,11 @@ export default function MathGameContainer() {
     setClickedOptions(new Set());
     setHasErrorInCurrent(false);
     const activeOps: Operation[] = gameMode === 'competition' ? ['addition', 'subtraction', 'comparison'] : operations;
-    setCurrentProblem(generateProblem(range, activeOps));
-  }, [range, operations, gameMode]);
+    setCurrentProblem(generateProblem(range, activeOps, {
+      withCarrying: gameMode === 'competition' ? true : withCarrying,
+      decompositionVariant,
+    }));
+  }, [range, operations, gameMode, withCarrying, decompositionVariant]);
 
   const handleAnswer = (answer: number | string) => {
     if (!currentProblem || feedback === 'correct') return;
@@ -314,11 +322,33 @@ export default function MathGameContainer() {
             {[10, 20, 100].map(r => (<DeskButton key={r} size="lg" variant={range === r ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setRange(r as NumberRange)}>Do {r}</DeskButton>))}
           </div>
         </div>
+        {range > 10 && (
+          <div className="flex flex-col gap-4 items-center text-board-black">
+            <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Přechod přes desítku</p>
+            <div className="flex gap-4">
+              <DeskButton size="md" variant={withCarrying ? 'primary' : 'outline'} className="min-w-[160px]" onClick={() => setWithCarrying(true)}>S přechodem</DeskButton>
+              <DeskButton size="md" variant={!withCarrying ? 'primary' : 'outline'} className="min-w-[160px]" onClick={() => setWithCarrying(false)}>Bez přechodu</DeskButton>
+            </div>
+          </div>
+        )}
         {!isCompetition && (
           <div className="flex flex-col gap-4 items-center text-board-black">
             <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Příklady</p>
+            <div className="flex gap-4 flex-wrap justify-center">
+              {(['addition', 'subtraction', 'comparison', 'decomposition'] as Operation[]).map(op => (
+                <DeskButton key={op} size="md" variant={operations.includes(op) ? 'primary' : 'outline'} className="min-w-[100px]" onClick={() => { if (operations.includes(op)) { if (operations.length > 1) setOperations(operations.filter(o => o !== op)); } else { setOperations([...operations, op]); } }}>
+                  {op === 'addition' ? '+' : op === 'subtraction' ? '-' : op === 'comparison' ? '< > =' : 'Rozklad'}
+                </DeskButton>
+              ))}
+            </div>
+          </div>
+        )}
+        {!isCompetition && operations.includes('decomposition') && (
+          <div className="flex flex-col gap-4 items-center text-board-black">
+            <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Rozklad — obtížnost</p>
             <div className="flex gap-4">
-              {(['addition', 'subtraction', 'comparison'] as Operation[]).map(op => (<DeskButton key={op} size="md" variant={operations.includes(op) ? 'primary' : 'outline'} className="min-w-[100px]" onClick={() => { if (operations.includes(op)) { if (operations.length > 1) setOperations(operations.filter(o => o !== op)); } else { setOperations([...operations, op]); } }}>{op === 'addition' ? '+' : op === 'subtraction' ? '-' : '< > ='}</DeskButton>))}
+              <DeskButton size="md" variant={decompositionVariant === 'easy' ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setDecompositionVariant('easy')}>Lehká</DeskButton>
+              <DeskButton size="md" variant={decompositionVariant === 'hard' ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setDecompositionVariant('hard')}>Těžká</DeskButton>
             </div>
           </div>
         )}
@@ -329,6 +359,8 @@ export default function MathGameContainer() {
 
   if (gameState === 'PLAYING' && currentProblem) {
     const isComparison = currentProblem.type === 'comparison';
+    const isDecomposition = currentProblem.type === 'decomposition';
+    const isHardDecomp = isDecomposition && currentProblem.decompositionVariant === 'hard';
     const displayOptions = isComparison ? ['<', '=', '>'] : currentProblem.options;
     return (
       <div className="flex flex-col h-full relative p-4 font-sans text-board-black">
@@ -359,14 +391,42 @@ export default function MathGameContainer() {
         </div>
         <div className="flex-1 flex flex-col items-center justify-center gap-8">
           <div className="h-40 flex items-center justify-center text-[9rem] font-black tracking-tight leading-none gap-8 text-board-black">
-            <span>{currentProblem.a}</span>
-            {isComparison ? (<div className="w-28 h-28 border-4 border-dashed border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 translate-y-2"><span className="text-6xl text-slate-200">?</span></div>) : (<><span className="text-class-green">{currentProblem.displayOperator}</span><span>{currentProblem.b}</span><span className="text-slate-200">=</span><span className="text-slate-200">?</span></>)}
-            {isComparison && <span>{currentProblem.b}</span>}
+            {isComparison ? (
+              <>
+                <span>{currentProblem.a}</span>
+                <div className="w-28 h-28 border-4 border-dashed border-slate-200 rounded-2xl flex items-center justify-center bg-slate-50 translate-y-2"><span className="text-6xl text-slate-200">?</span></div>
+                <span>{currentProblem.b}</span>
+              </>
+            ) : isHardDecomp ? (
+              <>
+                <span>{currentProblem.a}</span>
+                <span className="text-slate-200">=</span>
+                <span className="text-slate-200">?</span>
+                <span className="text-class-green">+</span>
+                <span className="text-slate-200">?</span>
+              </>
+            ) : isDecomposition ? (
+              <>
+                <span>{currentProblem.a}</span>
+                <span className="text-slate-200">=</span>
+                <span>{currentProblem.b}</span>
+                <span className="text-class-green">+</span>
+                <span className="text-slate-200">?</span>
+              </>
+            ) : (
+              <>
+                <span>{currentProblem.a}</span>
+                <span className="text-class-green">{currentProblem.displayOperator}</span>
+                <span>{currentProblem.b}</span>
+                <span className="text-slate-200">=</span>
+                <span className="text-slate-200">?</span>
+              </>
+            )}
           </div>
           <div className="h-72 w-full max-w-4xl flex items-center justify-center">
             <div className={`grid gap-6 w-full ${isComparison ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {displayOptions.map((opt, i) => (
-                <div key={`${currentProblem.id}-${i}`} className="w-full flex justify-center"><DeskButton size="xl" variant={feedback === 'correct' && opt === currentProblem.result ? 'success' : clickedOptions.has(opt) ? 'error' : 'primary'} className="w-full h-32 text-6xl font-black" onClick={() => handleAnswer(opt)} disabled={feedback === 'correct' || clickedOptions.has(opt)}>{opt}</DeskButton></div>
+                <div key={`${currentProblem.id}-${i}`} className="w-full flex justify-center"><DeskButton size="xl" variant={feedback === 'correct' && opt === currentProblem.result ? 'success' : clickedOptions.has(opt) ? 'error' : 'primary'} className={`w-full h-32 font-black ${isHardDecomp ? 'text-3xl' : 'text-6xl'}`} onClick={() => handleAnswer(opt)} disabled={feedback === 'correct' || clickedOptions.has(opt)}>{opt}</DeskButton></div>
               ))}
             </div>
           </div>
