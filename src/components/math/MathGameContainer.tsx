@@ -116,11 +116,11 @@ export default function MathGameContainer() {
     setStats({ correct: 0, total: 0, errors: 0, percentage: 0 });
     setLiveScore(0);
     setTimeLeft(60);
-    const activeOps: Operation[] = mode === 'competition' ? ['addition', 'subtraction', 'comparison'] : operations;
+    const activeOps: Operation[] = mode === 'competition' ? ['addition', 'subtraction', 'comparison', 'decomposition'] : operations;
     setGameState('PLAYING');
     setCurrentProblem(generateProblem(range, activeOps, {
       withCarrying: mode === 'competition' ? true : withCarrying,
-      decompositionVariant,
+      decompositionVariant: mode === 'competition' ? 'hard' : decompositionVariant,
     }));
     setFeedback(null);
     setClickedOptions(new Set());
@@ -131,10 +131,10 @@ export default function MathGameContainer() {
     setFeedback(null);
     setClickedOptions(new Set());
     setHasErrorInCurrent(false);
-    const activeOps: Operation[] = gameMode === 'competition' ? ['addition', 'subtraction', 'comparison'] : operations;
+    const activeOps: Operation[] = gameMode === 'competition' ? ['addition', 'subtraction', 'comparison', 'decomposition'] : operations;
     setCurrentProblem(generateProblem(range, activeOps, {
       withCarrying: gameMode === 'competition' ? true : withCarrying,
-      decompositionVariant,
+      decompositionVariant: gameMode === 'competition' ? 'hard' : decompositionVariant,
     }));
   }, [range, operations, gameMode, withCarrying, decompositionVariant]);
 
@@ -310,49 +310,50 @@ export default function MathGameContainer() {
   if (gameState === 'SETUP') {
     const isCompetition = gameMode === 'competition';
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-8 p-6 relative font-sans text-board-black">
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-6 relative font-sans text-board-black">
         <SubjectHeader subject="Matematika" subjectColor="#84cc16" />
         <div className="absolute top-6 left-6 flex items-center gap-6 text-board-black">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
         </div>
         <h2 className="text-6xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
-        <div className="flex flex-col gap-4 items-center">
+
+        {/* Range selector — always shown */}
+        <div className="flex flex-col gap-3 items-center">
           <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Obor čísel</p>
           <div className="flex gap-4">
             {[10, 20, 100].map(r => (<DeskButton key={r} size="lg" variant={range === r ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setRange(r as NumberRange)}>Do {r}</DeskButton>))}
           </div>
-        </div>
-        {range > 10 && (
-          <div className="flex flex-col gap-4 items-center text-board-black">
-            <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Přechod přes desítku</p>
-            <div className="flex gap-4">
-              <DeskButton size="md" variant={withCarrying ? 'primary' : 'outline'} className="min-w-[160px]" onClick={() => setWithCarrying(true)}>S přechodem</DeskButton>
-              <DeskButton size="md" variant={!withCarrying ? 'primary' : 'outline'} className="min-w-[160px]" onClick={() => setWithCarrying(false)}>Bez přechodu</DeskButton>
+          {/* Carrying toggle lives here, under the range buttons — training only */}
+          {!isCompetition && range > 10 && (
+            <div className="flex gap-3 mt-1">
+              <DeskButton size="md" variant={withCarrying ? 'primary' : 'outline'} className="min-w-[150px] py-2 text-xl" onClick={() => setWithCarrying(true)}>S přechodem</DeskButton>
+              <DeskButton size="md" variant={!withCarrying ? 'primary' : 'outline'} className="min-w-[150px] py-2 text-xl" onClick={() => setWithCarrying(false)}>Bez přechodu</DeskButton>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Operation toggles — training only */}
         {!isCompetition && (
-          <div className="flex flex-col gap-4 items-center text-board-black">
+          <div className="flex flex-col gap-3 items-center text-board-black">
             <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Příklady</p>
-            <div className="flex gap-4 flex-wrap justify-center">
+            <div className="flex gap-3 flex-wrap justify-center">
               {(['addition', 'subtraction', 'comparison', 'decomposition'] as Operation[]).map(op => (
                 <DeskButton key={op} size="md" variant={operations.includes(op) ? 'primary' : 'outline'} className="min-w-[100px]" onClick={() => { if (operations.includes(op)) { if (operations.length > 1) setOperations(operations.filter(o => o !== op)); } else { setOperations([...operations, op]); } }}>
                   {op === 'addition' ? '+' : op === 'subtraction' ? '-' : op === 'comparison' ? '< > =' : 'Rozklad'}
                 </DeskButton>
               ))}
             </div>
+            {/* Decomposition difficulty lives here, under operation buttons */}
+            {operations.includes('decomposition') && (
+              <div className="flex gap-3 mt-1">
+                <DeskButton size="md" variant={decompositionVariant === 'easy' ? 'primary' : 'outline'} className="min-w-[120px] py-2 text-xl" onClick={() => setDecompositionVariant('easy')}>Lehká</DeskButton>
+                <DeskButton size="md" variant={decompositionVariant === 'hard' ? 'primary' : 'outline'} className="min-w-[120px] py-2 text-xl" onClick={() => setDecompositionVariant('hard')}>Těžká</DeskButton>
+              </div>
+            )}
           </div>
         )}
-        {!isCompetition && operations.includes('decomposition') && (
-          <div className="flex flex-col gap-4 items-center text-board-black">
-            <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Rozklad — obtížnost</p>
-            <div className="flex gap-4">
-              <DeskButton size="md" variant={decompositionVariant === 'easy' ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setDecompositionVariant('easy')}>Lehká</DeskButton>
-              <DeskButton size="md" variant={decompositionVariant === 'hard' ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setDecompositionVariant('hard')}>Těžká</DeskButton>
-            </div>
-          </div>
-        )}
-        <DeskButton size="xl" variant="secondary" className="mt-4 px-20 py-6" onClick={() => startNewGame(gameMode)}>START!</DeskButton>
+
+        <DeskButton size="xl" variant="secondary" className="mt-2 px-20 py-6" onClick={() => startNewGame(gameMode)}>START!</DeskButton>
       </div>
     );
   }
