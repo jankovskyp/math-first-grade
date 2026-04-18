@@ -49,13 +49,13 @@ export default function RegisterScreen() {
     const handleNextStep = async () => {
         setError('');
         if (step === 1) {
-            if (!username.trim()) { setError('Zadej prosím své jméno.'); return; }
+            if (!username.trim()) { setError('Zadej prosím svoji přezdívku.'); return; }
             if (!supabase) { setError('Připojení selhalo.'); return; }
             setIsLoading(true);
             const { data, error: dbErr } = await supabase.from('players').select('id').ilike('username', username.trim()).single();
             setIsLoading(false);
             if (dbErr && dbErr.code !== 'PGRST116') { /* genuine error, allow to continue */ }
-            if (data) { setError('Toto jméno už někdo používá. Zkus jiné!'); return; }
+            if (data) { setError('Tato přezdívka už někdo používá. Zkus jinou!'); return; }
             setStep(2);
         } else if (step === 2) {
             if (!avatar) { setError('Vyber si svého zvířecího kamaráda!'); return; }
@@ -127,13 +127,13 @@ export default function RegisterScreen() {
                     {/* STEP 1: USERNAME */}
                     {step === 1 && (
                         <div className="w-full flex items-center flex-col gap-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <h2 className="text-4xl font-black italic text-center">Jak se jmenuješ?</h2>
+                            <h2 className="text-4xl font-black italic text-center">Jaká je tvoje přezdívka?</h2>
                             <input
                                 type="text"
                                 className="w-full text-center text-xl font-black p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-class-green transition-colors bg-slate-50"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value.replace(/[^\p{L}\p{N}]/gu, ''))}
-                                placeholder="Tvé jméno"
+                                placeholder="Tvoje přezdívka"
                                 autoFocus
                                 onKeyDown={(e) => e.key === 'Enter' && handleNextStep()}
                             />

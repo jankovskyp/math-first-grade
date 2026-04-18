@@ -39,7 +39,7 @@ export default function ProfilePage() {
         setSaved(false);
 
         const newUsername = username.trim();
-        if (!newUsername) { setError('Jméno nesmí být prázdné.'); return; }
+        if (!newUsername) { setError('Přezdívka nesmí být prázdná.'); return; }
 
         setIsLoading(true);
 
@@ -51,7 +51,7 @@ export default function ProfilePage() {
                 .ilike('username', newUsername)
                 .maybeSingle();
             if (existing) {
-                setError('Toto jméno už někdo používá. Zkus jiné!');
+                setError('Tato přezdívka už někdo používá. Zkus jinou!');
                 setIsLoading(false);
                 return;
             }
@@ -94,7 +94,7 @@ export default function ProfilePage() {
 
                         {/* Username */}
                         <div className="w-full flex flex-col gap-1.5">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Jméno</label>
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Přezdívka</label>
                             <input
                                 type="text"
                                 className="w-full text-center text-xl font-black p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-class-green transition-colors bg-slate-50"

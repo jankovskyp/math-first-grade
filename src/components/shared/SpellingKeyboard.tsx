@@ -40,7 +40,7 @@ export function SpellingKeyboard({
   useEffect(() => { disabledRef.current = disabled; },       [disabled]);
   useEffect(() => { feedbackRef.current = feedbackState; },  [feedbackState]);
 
-  // Hardware keyboard detection — fires for any physical keydown
+  // Hardware keyboard detection
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (disabledRef.current || feedbackRef.current !== null) return;
@@ -63,7 +63,7 @@ export function SpellingKeyboard({
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []); // intentionally empty — everything goes through refs
+  }, []);
 
   const addLetter = (letter: string) => {
     if (disabled || feedbackState !== null) return;
@@ -75,7 +75,6 @@ export function SpellingKeyboard({
     onChange(value.slice(0, -1));
   };
 
-  // ── Box colours ──────────────────────────────────────────────────────────
   const boxBase =
     feedbackState === 'correct'
       ? 'bg-green-50 border-success text-success'
@@ -91,14 +90,14 @@ export function SpellingKeyboard({
         {value.split('').map((ch, i) => (
           <div
             key={i}
-            className={`w-9 h-11 sm:w-10 sm:h-12 flex items-center justify-center rounded-xl text-lg sm:text-xl font-black border-2 transition-colors ${boxBase}`}
+            className={`w-9 h-11 sm:w-11 sm:h-13 flex items-center justify-center rounded-xl text-lg sm:text-xl font-black border-2 transition-colors ${boxBase}`}
           >
             {ch}
           </div>
         ))}
         {/* Blinking cursor */}
         {feedbackState === null && (
-          <div className="w-9 h-11 sm:w-10 sm:h-12 flex items-center justify-center rounded-xl border-2 border-dashed border-class-green">
+          <div className="w-9 h-11 sm:w-11 sm:h-13 flex items-center justify-center rounded-xl border-2 border-dashed border-class-green">
             <div
               className="w-0.5 h-5 bg-class-green"
               style={{ animation: 'blink 1s step-end infinite' }}
@@ -123,18 +122,18 @@ export function SpellingKeyboard({
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-1 sm:gap-1.5 items-center w-full">
+        /* Keys scale to fill available width up to max-w-2xl */
+        <div className="flex flex-col gap-1.5 items-center w-full px-2">
 
-          {/* Letter rows */}
           {ROWS.map((row, ri) => (
-            <div key={ri} className="flex gap-1 sm:gap-1.5">
+            <div key={ri} className="flex gap-1 sm:gap-1.5 w-full max-w-2xl">
               {row.map(letter => (
                 <button
                   key={letter}
                   type="button"
                   onClick={() => addLetter(letter)}
                   disabled={feedbackState !== null || disabled}
-                  className="w-[2.05rem] h-[2.8rem] sm:w-10 sm:h-12 bg-white rounded-lg text-sm sm:text-base font-bold text-board-black shadow-[0_2px_0_0_#c4bfe8] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none"
+                  className="flex-1 h-11 sm:h-13 bg-white rounded-lg text-sm sm:text-base font-bold text-board-black shadow-[0_2px_0_0_#c4bfe8] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none"
                 >
                   {letter}
                 </button>
@@ -143,12 +142,12 @@ export function SpellingKeyboard({
           ))}
 
           {/* Delete + Submit row */}
-          <div className="flex gap-2 mt-1">
+          <div className="flex gap-2 mt-1 w-full max-w-2xl">
             <button
               type="button"
               onClick={removeLetter}
               disabled={!value || disabled}
-              className="px-4 h-11 sm:h-12 bg-white rounded-lg font-bold text-error shadow-[0_2px_0_0_#c4bfe8] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none flex items-center gap-1 text-sm sm:text-base"
+              className="px-5 h-11 sm:h-13 bg-white rounded-lg font-bold text-error shadow-[0_2px_0_0_#c4bfe8] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none flex items-center gap-1.5 text-sm sm:text-base"
             >
               <Delete className="w-4 h-4" />
               <span>Del</span>
@@ -157,7 +156,7 @@ export function SpellingKeyboard({
               type="button"
               onClick={onSubmit}
               disabled={!value.trim() || feedbackState === 'correct' || disabled}
-              className="px-8 h-11 sm:h-12 bg-class-green text-white rounded-lg font-black shadow-[0_2px_0_0_rgba(91,33,182,0.4)] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none text-base sm:text-lg"
+              className="flex-1 h-11 sm:h-13 bg-class-green text-white rounded-lg font-black shadow-[0_2px_0_0_rgba(91,33,182,0.4)] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none text-base sm:text-lg"
             >
               OK →
             </button>

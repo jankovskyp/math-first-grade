@@ -135,7 +135,7 @@ export default function LoginScreen() {
                                     className="w-full text-center text-xl font-black p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-class-green transition-colors text-board-black bg-slate-50"
                                     value={usernameInput}
                                     onChange={(e) => setUsernameInput(e.target.value)}
-                                    placeholder="Tvé jméno"
+                                    placeholder="Tvoje přezdívka"
                                     autoFocus
                                 />
                                 <DeskButton size="md" variant="info" type="submit" disabled={isLoading} className="w-full py-4 text-lg">
