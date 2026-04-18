@@ -155,7 +155,7 @@ export default function SettingsPage() {
                   type="text"
                   value={enWord}
                   onChange={(e) => setEnWord(e.target.value)}
-                  className="w-full text-3xl font-black py-5 px-6 rounded-2xl border-4 border-slate-100 focus:border-[#38BDF8] outline-none bg-slate-50 text-slate-900"
+                  className="w-full text-3xl font-black py-5 px-6 rounded-2xl border-4 border-slate-100 focus:border-class-green outline-none bg-slate-50 text-slate-900"
                   placeholder="apple"
                   autoFocus
                 />
@@ -192,7 +192,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      {w.audio_url && (<button onClick={() => playPreview(w.audio_url!)} className="text-[#38BDF8] hover:bg-white p-3 rounded-xl transition-all"><Volume2 className="w-6 h-6" /></button>)}
+                      {w.audio_url && (<button onClick={() => playPreview(w.audio_url!)} className="text-class-green hover:bg-white p-3 rounded-xl transition-all"><Volume2 className="w-6 h-6" /></button>)}
                       <button onClick={() => handleDelete(w.id, w.audio_url)} className="text-slate-200 hover:text-error transition-colors p-3 rounded-xl"><Trash2 className="w-6 h-6" /></button>
                     </div>
                   </div>

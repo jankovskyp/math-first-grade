@@ -5,19 +5,26 @@ interface DeskButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
   size?: 'md' | 'lg' | 'xl';
 }
 
-export function DeskButton({ 
-  className, 
-  variant = 'primary', 
-  size = 'md', 
-  ...props 
+export function DeskButton({
+  className,
+  variant = 'primary',
+  size = 'md',
+  ...props
 }: DeskButtonProps) {
   const variants = {
-    primary: "bg-class-green text-board-black shadow-[0_8px_0_0_rgba(163,230,53,0.3)] active:shadow-none translate-y-[-4px] active:translate-y-0",
-    secondary: "bg-carpet-green text-white shadow-[0_8px_0_0_rgba(20,83,45,0.3)] active:shadow-none translate-y-[-4px] active:translate-y-0",
-    info: "bg-[#38BDF8] text-white shadow-[0_8px_0_0_rgba(56,189,248,0.3)] active:shadow-none translate-y-[-4px] active:translate-y-0",
-    outline: "border-4 border-slate-200 text-board-black bg-white hover:bg-slate-50 shadow-[0_4px_0_0_rgba(0,0,0,0.05)] active:shadow-none translate-y-[-2px] active:translate-y-0",
-    success: "bg-success text-white shadow-[0_8px_0_0_rgba(34,197,94,0.3)] active:shadow-none translate-y-[-4px] active:translate-y-0",
-    error: "bg-error text-white shadow-none translate-y-0 scale-95 opacity-50",
+    primary:
+      "bg-class-green text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:shadow-[0_6px_24px_rgba(124,58,237,0.45)] active:shadow-[0_2px_6px_rgba(124,58,237,0.2)]",
+    secondary:
+      "bg-carpet-green text-white shadow-[0_4px_16px_rgba(91,33,182,0.35)] hover:shadow-[0_6px_24px_rgba(91,33,182,0.45)] active:shadow-[0_2px_6px_rgba(91,33,182,0.2)]",
+    // info is unified with primary (violet) — kept for back-compat
+    info:
+      "bg-class-green text-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:shadow-[0_6px_24px_rgba(124,58,237,0.45)] active:shadow-[0_2px_6px_rgba(124,58,237,0.2)]",
+    outline:
+      "border-2 border-slate-200 text-board-black bg-white hover:bg-slate-50 shadow-sm hover:shadow-md",
+    success:
+      "bg-success text-white shadow-[0_4px_16px_rgba(22,163,74,0.35)] hover:shadow-[0_6px_24px_rgba(22,163,74,0.45)]",
+    error:
+      "bg-error text-white shadow-none opacity-60",
   };
 
   const sizes = {
@@ -29,7 +36,7 @@ export function DeskButton({
   return (
     <button
       className={cn(
-        "font-sans transition-all duration-75 flex items-center justify-center active:scale-95 touch-manipulation",
+        "font-sans transition-all duration-150 flex items-center justify-center active:scale-[0.97] touch-manipulation select-none",
         variants[variant],
         sizes[size],
         className

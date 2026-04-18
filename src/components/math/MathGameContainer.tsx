@@ -220,9 +220,9 @@ export default function MathGameContainer() {
   if (gameState === 'HOME') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 p-6 bg-desk-white font-sans text-board-black relative">
-        <SubjectHeader subject="Matematika" subjectColor="#84cc16" />
+        <SubjectHeader subject="Matematika" />
         <div className="absolute top-6 left-6 flex items-center gap-6">
-          <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-class-green border-4">
+          <DeskButton variant="outline" size="md" onClick={() => router.push('/')} className="border-class-green border-2">
             <Home className="w-6 h-6 text-class-green" />
           </DeskButton>
         </div>
@@ -260,9 +260,9 @@ export default function MathGameContainer() {
       : deduped(leaderboard.filter(e => e.range === leaderboardTab));
     return (
       <div className="flex flex-col items-center h-full gap-4 p-4 relative bg-desk-white font-sans text-board-black">
-        <SubjectHeader subject="Matematika" subjectColor="#84cc16" />
+        <SubjectHeader subject="Matematika" />
         <div className="absolute top-6 left-6 flex items-center gap-6">
-          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4">
+          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2">
             <Home className="w-6 h-6 text-class-green" />
           </DeskButton>
         </div>
@@ -311,9 +311,9 @@ export default function MathGameContainer() {
     const isCompetition = gameMode === 'competition';
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6 p-6 relative font-sans text-board-black">
-        <SubjectHeader subject="Matematika" subjectColor="#84cc16" />
+        <SubjectHeader subject="Matematika" />
         <div className="absolute top-6 left-6 flex items-center gap-6 text-board-black">
-          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
+          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2"><Home className="w-6 h-6 text-class-green" /></DeskButton>
         </div>
         <h2 className="text-6xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
 
@@ -367,7 +367,7 @@ export default function MathGameContainer() {
       <div className="flex flex-col h-full relative p-4 font-sans text-board-black">
         <div className="flex justify-between items-center mb-4 text-board-black">
           <div className="flex gap-3 items-center">
-            <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-4"><Home className="w-6 h-6 text-class-green" /></DeskButton>
+            <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2"><Home className="w-6 h-6 text-class-green" /></DeskButton>
             <div className="flex gap-2">
               <div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><CheckCircle2 className="text-success w-6 h-6" /><span className="text-3xl font-black text-success leading-none">{stats.correct}</span></div>
               {stats.errors > 0 && (<div className="bg-white rounded-xl px-5 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><XCircle className="text-error w-6 h-6" /><span className="text-3xl font-black text-error leading-none">{stats.errors}</span></div>)}
@@ -458,7 +458,7 @@ export default function MathGameContainer() {
           </div>
           {gameMode === 'competition' && (
             <div className="flex flex-col gap-2 w-full mt-2 pt-4 border-t-2 border-slate-100 items-center">
-              <p className="text-xl font-bold text-slate-400">Uloženo jako <span className="text-[#38BDF8]">{player?.username}</span></p>
+              <p className="text-xl font-bold text-slate-400">Uloženo jako <span className="text-class-green">{player?.username}</span></p>
             </div>
           )}
         </div>

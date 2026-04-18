@@ -1,28 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8FAFC;
-  --foreground: #1E293B;
-  
-  /* School UI Colors */
-  --class-green: #A3E635;
-  --carpet-green: #14532D;
-  --desk-white: #F8FAFC;
-  --board-black: #1E293B;
-  --success-green: #22C55E;
-  --error-red: #EF4444;
+  --background: #f7f6fd;
+  --foreground: #1a1744;
+
+  /* ── Unified violet palette — same for math AND english ── */
+  --class-green:  #7c3aed;   /* primary action colour (was lime-green) */
+  --carpet-green: #5b21b6;   /* dark primary (was dark-green) */
+  --desk-white:   #f7f6fd;   /* page background */
+  --board-black:  #1a1744;   /* body text */
+
+  /* Semantic */
+  --success-green: #16a34a;
+  --error-red:     #dc2626;
+
+  /* Keyboard key shadow */
+  --kbd-shadow: #c4bfe8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  
-  --color-class-green: var(--class-green);
+  --color-background:   var(--background);
+  --color-foreground:   var(--foreground);
+
+  --color-class-green:  var(--class-green);
   --color-carpet-green: var(--carpet-green);
-  --color-desk-white: var(--desk-white);
-  --color-board-black: var(--board-black);
-  --color-success: var(--success-green);
-  --color-error: var(--error-red);
+  --color-desk-white:   var(--desk-white);
+  --color-board-black:  var(--board-black);
+  --color-success:      var(--success-green);
+  --color-error:        var(--error-red);
 
   --font-sans: var(--font-baloo);
 }
@@ -35,12 +40,12 @@ body {
   user-select: none;
 }
 
-/* Base styles for massive touch targets */
 button {
   cursor: pointer;
-  transition: transform 0.1s ease-in-out;
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-button:active {
-  transform: scale(0.92);
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
 }

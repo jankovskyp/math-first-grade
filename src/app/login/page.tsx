@@ -162,7 +162,7 @@ export default function LoginScreen() {
                             {error && <div className="p-4 bg-red-100 text-red-600 rounded-2xl w-full text-center mb-6 font-bold">{error}</div>}
                             <input
                                 type="text"
-                                className="w-full text-center text-3xl font-black p-5 rounded-3xl border-4 border-slate-200 outline-none focus:border-[#38BDF8] transition-colors mb-6 text-board-black"
+                                className="w-full text-center text-3xl font-black p-5 rounded-3xl border-4 border-slate-200 outline-none focus:border-class-green transition-colors mb-6 text-board-black"
                                 value={usernameInput}
                                 onChange={(e) => setUsernameInput(e.target.value)}
                                 placeholder="Tvé jméno"
@@ -200,7 +200,7 @@ export default function LoginScreen() {
                             <div className="w-full flex flex-col items-center">
                                 <div className="flex gap-4 mb-8">
                                     {[0, 1, 2, 3].map((i) => (
-                                        <div key={i} className={`w-14 h-18 sm:w-16 sm:h-20 rounded-2xl border-4 flex items-center justify-center text-4xl font-black ${pin[i] ? 'border-[#38BDF8] bg-sky-50' : 'border-slate-200'}`}>
+                                        <div key={i} className={`w-14 h-18 sm:w-16 sm:h-20 rounded-2xl border-4 flex items-center justify-center text-4xl font-black ${pin[i] ? 'border-class-green bg-class-green/10' : 'border-slate-200'}`}>
                                             {pin[i] ? '•' : ''}
                                         </div>
                                     ))}
@@ -211,7 +211,7 @@ export default function LoginScreen() {
                                         <button
                                             key={num}
                                             onClick={() => appendPin(num.toString())}
-                                            className="bg-slate-100 hover:bg-slate-200 active:bg-[#38BDF8] active:text-white text-3xl font-black p-4 rounded-2xl transition-colors"
+                                            className="bg-slate-100 hover:bg-slate-200 active:bg-class-green active:text-white text-3xl font-black p-4 rounded-2xl transition-colors"
                                         >
                                             {num}
                                         </button>
@@ -219,7 +219,7 @@ export default function LoginScreen() {
                                     <div />
                                     <button
                                         onClick={() => appendPin('0')}
-                                        className="bg-slate-100 hover:bg-slate-200 active:bg-[#38BDF8] active:text-white text-3xl font-black p-4 rounded-2xl transition-colors"
+                                        className="bg-slate-100 hover:bg-slate-200 active:bg-class-green active:text-white text-3xl font-black p-4 rounded-2xl transition-colors"
                                     >
                                         0
                                     </button>
@@ -233,7 +233,7 @@ export default function LoginScreen() {
 
                                 <button
                                     onClick={() => { setRecoveryStep(1); setError(''); setPin(''); }}
-                                    className="text-slate-400 font-bold text-lg hover:text-[#38BDF8] underline underline-offset-4 mt-2"
+                                    className="text-slate-400 font-bold text-lg hover:text-class-green underline underline-offset-4 mt-2"
                                 >
                                     Zapomněl(a) jsem PIN
                                 </button>
@@ -241,12 +241,12 @@ export default function LoginScreen() {
                         ) : recoveryStep === 1 ? (
                             // RECOVERY STEP 1: QUESTION
                             <div className="w-full flex flex-col items-center animate-in fade-in duration-300">
-                                <p className="text-xl font-bold text-[#38BDF8] text-center mb-1">Záchranná otázka:</p>
+                                <p className="text-xl font-bold text-class-green text-center mb-1">Záchranná otázka:</p>
                                 <p className="text-xl font-bold text-slate-400 text-center uppercase tracking-widest">{selectedPlayer.recovery_question || 'Zadejte odpověď'}</p>
 
                                 <input
                                     type="text"
-                                    className="w-full text-center text-2xl p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-[#38BDF8] mb-6 mt-6"
+                                    className="w-full text-center text-2xl p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-class-green mb-6 mt-6"
                                     value={recoveryAnswer}
                                     onChange={(e) => setRecoveryAnswer(e.target.value)}
                                     placeholder="Tvoje odpověď"
@@ -268,7 +268,7 @@ export default function LoginScreen() {
                                 <input
                                     type="password"
                                     maxLength={4}
-                                    className="w-32 text-center text-4xl p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-[#38BDF8] mb-8 font-black tracking-widest text-[#38BDF8]"
+                                    className="w-32 text-center text-4xl p-4 rounded-2xl border-4 border-slate-200 outline-none focus:border-class-green mb-8 font-black tracking-widest text-class-green"
                                     value={newPin}
                                     onChange={(e) => setNewPin(e.target.value.replace(/[^0-9]/g, ''))}
                                     placeholder="••••"

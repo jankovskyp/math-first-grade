@@ -152,7 +152,7 @@ export default function RegisterScreen() {
                 {/* Step Indicator */}
                 <div className="flex justify-center gap-4 mb-8">
                     {[1, 2, 3, 4].map((s) => (
-                        <div key={s} className={`h-3 w-16 rounded-full ${step >= s ? 'bg-[#38BDF8]' : 'bg-slate-200'}`} />
+                        <div key={s} className={`h-3 w-16 rounded-full ${step >= s ? 'bg-class-green' : 'bg-slate-200'}`} />
                     ))}
                 </div>
 
@@ -164,7 +164,7 @@ export default function RegisterScreen() {
                         <h2 className="text-4xl font-black italic mb-8">Jak se jmenuješ?</h2>
                         <input
                             type="text"
-                            className="w-full max-w-md text-center text-4xl p-6 rounded-3xl border-4 border-slate-200 outline-none focus:border-[#38BDF8] transition-colors mb-8"
+                            className="w-full max-w-md text-center text-4xl p-6 rounded-3xl border-4 border-slate-200 outline-none focus:border-class-green transition-colors mb-8"
                             value={username}
                             onChange={(e) => setUsername(e.target.value.replace(/[^\p{L}\p{N}]/gu, ''))}
                             placeholder="Tvé jméno"
@@ -188,7 +188,7 @@ export default function RegisterScreen() {
                                 <button
                                     key={a.id}
                                     onClick={() => setAvatar(a.id)}
-                                    className={`relative p-3 rounded-3xl border-4 transition-all hover:scale-105 ${avatar === a.id ? 'border-[#38BDF8] bg-sky-50 shadow-lg scale-105' : 'border-slate-100 hover:border-slate-300'
+                                    className={`relative p-3 rounded-3xl border-4 transition-all hover:scale-105 ${avatar === a.id ? 'border-class-green bg-class-green/10 shadow-lg scale-105' : 'border-slate-100 hover:border-slate-300'
                                         }`}
                                 >
                                     <Image src={`/avatars/${a.id}.png`} alt={a.label} width={100} height={100} className="w-full h-auto aspect-square mix-blend-multiply" />
@@ -210,7 +210,7 @@ export default function RegisterScreen() {
 
                         <div className="flex gap-4 mb-8">
                             {[0, 1, 2, 3].map((i) => (
-                                <div key={i} className={`w-16 h-20 sm:w-20 sm:h-24 rounded-2xl border-4 flex items-center justify-center text-4xl font-black ${pin[i] ? 'border-[#38BDF8] bg-sky-50' : 'border-slate-200'}`}>
+                                <div key={i} className={`w-16 h-20 sm:w-20 sm:h-24 rounded-2xl border-4 flex items-center justify-center text-4xl font-black ${pin[i] ? 'border-class-green bg-class-green/10' : 'border-slate-200'}`}>
                                     {pin[i] || ''}
                                 </div>
                             ))}
@@ -256,7 +256,7 @@ export default function RegisterScreen() {
                         <p className="text-slate-400 font-bold mb-8 text-center">Pokud zapomeneš PIN, tato odpověď tě zachrání.</p>
 
                         <select
-                            className="w-full max-w-md p-4 rounded-2xl border-4 border-slate-200 text-xl font-bold text-board-black mb-4 outline-none focus:border-[#38BDF8]"
+                            className="w-full max-w-md p-4 rounded-2xl border-4 border-slate-200 text-xl font-bold text-board-black mb-4 outline-none focus:border-class-green"
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
                         >
@@ -265,7 +265,7 @@ export default function RegisterScreen() {
 
                         <input
                             type="text"
-                            className="w-full max-w-md text-center text-3xl p-6 rounded-3xl border-4 border-slate-200 outline-none focus:border-[#38BDF8] transition-colors mb-8"
+                            className="w-full max-w-md text-center text-3xl p-6 rounded-3xl border-4 border-slate-200 outline-none focus:border-class-green transition-colors mb-8"
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
                             placeholder="Tvoje odpověď"

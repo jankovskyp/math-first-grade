@@ -41,7 +41,7 @@ export default function AboutPage() {
             </p>
             <a
               href="mailto:gritty-claps8g@icloud.com"
-              className="text-4xl font-black text-[#38BDF8] hover:scale-105 transition-transform"
+              className="text-4xl font-black text-class-green hover:scale-105 transition-transform"
             >
               gritty-claps8g@icloud.com
             </a>
