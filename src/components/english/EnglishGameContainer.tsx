@@ -290,6 +290,21 @@ export default function EnglishGameContainer() {
     handleAnswer(spellingInput);
   };
 
+  const handleSkip = () => {
+    if (!hasErrorInCurrent) {
+      const newErrors = stats.errors + 1;
+      const newTotal = stats.total + 1;
+      setStats(prev => ({ ...prev, errors: newErrors, total: newTotal }));
+      setHasErrorInCurrent(true);
+      if (gameMode === 'competition') {
+        const accuracy = Math.round((stats.correct / newTotal) * 100);
+        const newScore = Math.max(0, Math.round(((stats.correct * 10) - (newErrors * 5)) * (accuracy / 100)));
+        setLiveScore(newScore);
+      }
+    }
+    nextProblem();
+  };
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (gameState === 'PLAYING' && gameMode === 'competition' && timeLeft > 0) {
@@ -532,16 +547,16 @@ export default function EnglishGameContainer() {
     const isSpelling = currentProblem.type === 'spelling';
 
     return (
-      <div className="flex flex-col h-full relative p-4 font-sans text-board-black">
+      <div className="flex flex-col h-full p-4 font-sans text-board-black">
 
-        {/* ── Topbar: 3-part flex — no absolute positioning ────────────── */}
+        {/* ── Topbar — training: [home+badges] · competition: [home][score][timer] */}
         <div className="flex items-center mb-4 flex-shrink-0 gap-2">
-          {/* Left: home + stat badges */}
-          <div className="flex gap-2 items-center shrink-0">
-            <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2">
-              <Home className="w-6 h-6 text-class-green" />
-            </DeskButton>
-            <div className="flex gap-2">
+          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2 shrink-0">
+            <Home className="w-6 h-6 text-class-green" />
+          </DeskButton>
+
+          {gameMode === 'training' ? (
+            <div className="flex gap-2 items-center">
               <div className="bg-white rounded-xl px-4 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2">
                 <CheckCircle2 className="text-success w-5 h-5" />
                 <span className="text-2xl font-black text-success leading-none">{stats.correct}</span>
@@ -553,44 +568,25 @@ export default function EnglishGameContainer() {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Center: score pill (competition) or spacer */}
-          <div className="flex-1 flex justify-center">
-            {gameMode === 'competition' && (
-              <div className={`bg-board-black text-white px-6 py-2 rounded-2xl flex items-center gap-3 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
-                <Star className="w-6 h-6 text-class-green" fill="currentColor" />
-                <span className="text-4xl font-black">{liveScore}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Right: sound button (spelling) + timer (competition) */}
-          <div className="flex flex-col items-end gap-1.5 shrink-0">
-            {isSpelling && currentProblem.audioUrl && (
-              <button
-                type="button"
-                onClick={() => playAudio(currentProblem.audioUrl!)}
-                className="w-16 h-16 flex items-center justify-center bg-class-green text-white rounded-2xl shadow-[0_4px_16px_rgba(124,58,237,0.35)] hover:shadow-[0_6px_24px_rgba(124,58,237,0.45)] active:scale-[0.97] transition-all"
-              >
-                <Volume2 className="w-8 h-8" />
-              </button>
-            )}
-            {gameMode === 'competition' && (
-              <div className="flex flex-col items-end gap-1 min-w-[76px]">
-                <div className="flex items-center gap-1.5">
-                  <Timer className="w-5 h-5" />
-                  <span className="text-2xl font-mono font-black">{timeLeft}s</span>
-                </div>
-                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-white shadow-inner">
-                  <div
-                    className="h-full bg-class-green transition-all duration-1000 ease-linear"
-                    style={{ width: `${(timeLeft / 60) * 100}%` }}
-                  />
+          ) : (
+            <>
+              <div className="flex-1 flex justify-center">
+                <div className={`bg-board-black text-white px-5 py-1.5 rounded-2xl flex items-center gap-2 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
+                  <Star className="w-5 h-5 text-class-green" fill="currentColor" />
+                  <span className="text-3xl font-black">{liveScore}</span>
                 </div>
               </div>
-            )}
-          </div>
+              <div className="flex flex-col items-end gap-0.5 shrink-0 min-w-[68px]">
+                <div className="flex items-center gap-1">
+                  <Timer className="w-4 h-4" />
+                  <span className="text-xl font-mono font-black">{timeLeft}s</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-white shadow-inner">
+                  <div className="h-full bg-class-green transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / 60) * 100}%` }} />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── Question / listen area ───────────────────────────────────── */}
@@ -614,13 +610,23 @@ export default function EnglishGameContainer() {
         {/* ── Answer area ──────────────────────────────────────────────── */}
         <div className="flex-shrink-0 pb-2">
           {isSpelling ? (
-            <SpellingKeyboard
-              value={spellingInput}
-              onChange={setSpellingInput}
-              onSubmit={handleSpellingSubmit}
-              feedbackState={feedback}
-              disabled={!!feedback}
-            />
+            <div className="flex flex-col items-center gap-1">
+              <SpellingKeyboard
+                value={spellingInput}
+                onChange={setSpellingInput}
+                onSubmit={handleSpellingSubmit}
+                feedbackState={feedback}
+                disabled={!!feedback}
+              />
+              <button
+                type="button"
+                onClick={handleSkip}
+                disabled={feedback === 'correct'}
+                className="text-slate-400 font-bold text-sm hover:text-slate-500 underline underline-offset-2 py-1 disabled:opacity-0 transition-opacity"
+              >
+                Přeskočit slovo →
+              </button>
+            </div>
           ) : (
             <div className="grid gap-4 w-full grid-cols-2 px-2">
               {currentProblem.options?.map((opt, i) => (

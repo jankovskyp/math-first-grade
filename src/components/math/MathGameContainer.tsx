@@ -310,50 +310,48 @@ export default function MathGameContainer() {
   if (gameState === 'SETUP') {
     const isCompetition = gameMode === 'competition';
     return (
-      <div className="flex flex-col items-center justify-start h-full gap-4 p-6 pt-28 overflow-y-auto relative font-sans text-board-black">
+      <div className="flex flex-col items-center justify-start h-full gap-3 p-4 pt-20 overflow-y-auto relative font-sans text-board-black">
         <SubjectHeader subject="Matematika" />
         <div className="absolute top-6 left-6 flex items-center gap-6 text-board-black">
           <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2"><Home className="w-6 h-6 text-class-green" /></DeskButton>
         </div>
-        <h2 className="text-5xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
+        <h2 className="text-2xl font-black italic">{isCompetition ? 'Soutěž' : 'Trénink'}</h2>
 
-        {/* Range selector — always shown */}
-        <div className="flex flex-col gap-3 items-center">
-          <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Obor čísel</p>
-          <div className="flex gap-4">
-            {[10, 20, 100].map(r => (<DeskButton key={r} size="lg" variant={range === r ? 'primary' : 'outline'} className="min-w-[120px]" onClick={() => setRange(r as NumberRange)}>Do {r}</DeskButton>))}
+        {/* Range selector */}
+        <div className="flex flex-col gap-2 items-center">
+          <p className="text-xs font-black text-slate-300 uppercase tracking-widest">Obor čísel</p>
+          <div className="flex gap-2">
+            {[10, 20, 100].map(r => (<DeskButton key={r} size="md" variant={range === r ? 'primary' : 'outline'} className="min-w-[72px] py-2 text-xl" onClick={() => setRange(r as NumberRange)}>Do {r}</DeskButton>))}
           </div>
-          {/* Carrying toggle lives here, under the range buttons */}
           {range > 10 && (
-            <div className="flex gap-3 mt-1">
-              <DeskButton size="md" variant={withCarrying ? 'primary' : 'outline'} className="min-w-[150px] py-2 text-xl" onClick={() => setWithCarrying(true)}>S přechodem</DeskButton>
-              <DeskButton size="md" variant={!withCarrying ? 'primary' : 'outline'} className="min-w-[150px] py-2 text-xl" onClick={() => setWithCarrying(false)}>Bez přechodu</DeskButton>
+            <div className="flex gap-2">
+              <DeskButton size="md" variant={withCarrying ? 'primary' : 'outline'} className="min-w-[120px] py-1.5 text-base" onClick={() => setWithCarrying(true)}>S přechodem</DeskButton>
+              <DeskButton size="md" variant={!withCarrying ? 'primary' : 'outline'} className="min-w-[120px] py-1.5 text-base" onClick={() => setWithCarrying(false)}>Bez přechodu</DeskButton>
             </div>
           )}
         </div>
 
         {/* Operation toggles — training only */}
         {!isCompetition && (
-          <div className="flex flex-col gap-3 items-center text-board-black">
-            <p className="text-2xl font-black text-slate-300 uppercase tracking-widest">Příklady</p>
-            <div className="flex gap-3 flex-wrap justify-center">
+          <div className="flex flex-col gap-2 items-center text-board-black">
+            <p className="text-xs font-black text-slate-300 uppercase tracking-widest">Příklady</p>
+            <div className="flex gap-2 flex-wrap justify-center">
               {(['addition', 'subtraction', 'comparison', 'decomposition'] as Operation[]).map(op => (
-                <DeskButton key={op} size="md" variant={operations.includes(op) ? 'primary' : 'outline'} className="min-w-[100px]" onClick={() => { if (operations.includes(op)) { if (operations.length > 1) setOperations(operations.filter(o => o !== op)); } else { setOperations([...operations, op]); } }}>
+                <DeskButton key={op} size="md" variant={operations.includes(op) ? 'primary' : 'outline'} className="min-w-[72px] py-2 text-xl" onClick={() => { if (operations.includes(op)) { if (operations.length > 1) setOperations(operations.filter(o => o !== op)); } else { setOperations([...operations, op]); } }}>
                   {op === 'addition' ? '+' : op === 'subtraction' ? '-' : op === 'comparison' ? '< > =' : 'Rozklad'}
                 </DeskButton>
               ))}
             </div>
-            {/* Decomposition difficulty lives here, under operation buttons */}
             {operations.includes('decomposition') && (
-              <div className="flex gap-3 mt-1">
-                <DeskButton size="md" variant={decompositionVariant === 'easy' ? 'primary' : 'outline'} className="min-w-[120px] py-2 text-xl" onClick={() => setDecompositionVariant('easy')}>Lehká</DeskButton>
-                <DeskButton size="md" variant={decompositionVariant === 'hard' ? 'primary' : 'outline'} className="min-w-[120px] py-2 text-xl" onClick={() => setDecompositionVariant('hard')}>Těžká</DeskButton>
+              <div className="flex gap-2">
+                <DeskButton size="md" variant={decompositionVariant === 'easy' ? 'primary' : 'outline'} className="min-w-[90px] py-1.5 text-base" onClick={() => setDecompositionVariant('easy')}>Lehká</DeskButton>
+                <DeskButton size="md" variant={decompositionVariant === 'hard' ? 'primary' : 'outline'} className="min-w-[90px] py-1.5 text-base" onClick={() => setDecompositionVariant('hard')}>Těžká</DeskButton>
               </div>
             )}
           </div>
         )}
 
-        <DeskButton size="xl" variant="secondary" className="mt-2 px-20 py-6" onClick={() => startNewGame(gameMode)}>START!</DeskButton>
+        <DeskButton size="lg" variant="secondary" className="mt-1 px-12 py-4" onClick={() => startNewGame(gameMode)}>START!</DeskButton>
       </div>
     );
   }
@@ -365,33 +363,43 @@ export default function MathGameContainer() {
     const displayOptions = isComparison ? ['<', '=', '>'] : currentProblem.options;
     return (
       <div className="flex flex-col h-full p-4 font-sans text-board-black">
-        {/* Topbar: 3-part flex — no absolute positioning */}
+        {/* Topbar — training: [home + badges] · competition: [home][score pill][timer] */}
         <div className="flex items-center mb-4 gap-2">
-          {/* Left: home + stat badges */}
-          <div className="flex gap-2 items-center shrink-0">
-            <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2"><Home className="w-6 h-6 text-class-green" /></DeskButton>
-            <div className="flex gap-2">
-              <div className="bg-white rounded-xl px-4 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><CheckCircle2 className="text-success w-5 h-5" /><span className="text-2xl font-black text-success leading-none">{stats.correct}</span></div>
-              {stats.errors > 0 && (<div className="bg-white rounded-xl px-4 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2"><XCircle className="text-error w-5 h-5" /><span className="text-2xl font-black text-error leading-none">{stats.errors}</span></div>)}
-            </div>
-          </div>
+          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2 shrink-0">
+            <Home className="w-6 h-6 text-class-green" />
+          </DeskButton>
 
-          {/* Center: score pill (competition) or spacer */}
-          <div className="flex-1 flex justify-center">
-            {gameMode === 'competition' && (
-              <div className={`bg-board-black text-white px-6 py-2 rounded-2xl flex items-center gap-3 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
-                <Star className="w-6 h-6 text-class-green" fill="currentColor" />
-                <span className="text-4xl font-black">{liveScore}</span>
+          {gameMode === 'training' ? (
+            <div className="flex gap-2 items-center">
+              <div className="bg-white rounded-xl px-4 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2">
+                <CheckCircle2 className="text-success w-5 h-5" />
+                <span className="text-2xl font-black text-success leading-none">{stats.correct}</span>
               </div>
-            )}
-          </div>
-
-          {/* Right: timer (competition only) */}
-          {gameMode === 'competition' && (
-            <div className="flex flex-col items-end gap-1 shrink-0 min-w-[80px]">
-              <div className="flex items-center gap-1.5"><Timer className="w-5 h-5" /><span className="text-2xl font-mono font-black">{timeLeft}s</span></div>
-              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-white shadow-inner"><div className="h-full bg-carpet-green transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / 60) * 100}%` }} /></div>
+              {stats.errors > 0 && (
+                <div className="bg-white rounded-xl px-4 py-2 shadow-sm border-2 border-slate-50 flex items-center gap-2">
+                  <XCircle className="text-error w-5 h-5" />
+                  <span className="text-2xl font-black text-error leading-none">{stats.errors}</span>
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <div className="flex-1 flex justify-center">
+                <div className={`bg-board-black text-white px-5 py-1.5 rounded-2xl flex items-center gap-2 transition-transform duration-300 ${scorePop ? 'scale-125' : 'scale-100'}`}>
+                  <Star className="w-5 h-5 text-class-green" fill="currentColor" />
+                  <span className="text-3xl font-black">{liveScore}</span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-0.5 shrink-0 min-w-[68px]">
+                <div className="flex items-center gap-1">
+                  <Timer className="w-4 h-4" />
+                  <span className="text-xl font-mono font-black">{timeLeft}s</span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-white shadow-inner">
+                  <div className="h-full bg-carpet-green transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / 60) * 100}%` }} />
+                </div>
+              </div>
+            </>
           )}
         </div>
         <div className="flex-1 flex flex-col items-center justify-center gap-8">
