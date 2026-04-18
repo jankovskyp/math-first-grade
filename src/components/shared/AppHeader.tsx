@@ -11,9 +11,11 @@ interface AppHeaderProps {
   page?: string;
   /** If provided, renders a back arrow that calls this handler */
   onBack?: () => void;
+  /** Show the player avatar + logout button (home page only) */
+  showLogout?: boolean;
 }
 
-export function AppHeader({ subject, page, onBack }: AppHeaderProps) {
+export function AppHeader({ subject, page, onBack, showLogout = false }: AppHeaderProps) {
   const { player, setPlayer } = usePlayer();
   const router = useRouter();
 
@@ -55,8 +57,8 @@ export function AppHeader({ subject, page, onBack }: AppHeaderProps) {
         )}
       </div>
 
-      {/* Right: player avatar + name + logout */}
-      {player && (
+      {/* Right: player avatar + logout (home only) */}
+      {showLogout && player && (
         <div className="flex items-center gap-1.5 bg-slate-50 border-2 border-slate-100 rounded-xl pl-1.5 pr-1.5 py-1 shrink-0">
           <div className="w-7 h-7 relative shrink-0">
             <Image

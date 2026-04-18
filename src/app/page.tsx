@@ -13,7 +13,7 @@ export default function MainMenu() {
     <AuthGuard>
       <main className="h-screen w-screen overflow-hidden bg-desk-white flex items-center justify-center lg:bg-[#ece9fc] lg:p-8">
         <div className="w-full h-full lg:w-[480px] lg:rounded-[2.5rem] lg:overflow-hidden lg:shadow-2xl bg-white flex flex-col font-sans text-board-black">
-          <AppHeader />
+          <AppHeader showLogout />
           <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6 pb-6">
             <DeskButton size="lg" onClick={() => router.push('/math')} className="w-full py-7">
               <Calculator className="mr-4 w-9 h-9 shrink-0" strokeWidth={2.5} />

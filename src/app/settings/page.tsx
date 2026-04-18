@@ -128,71 +128,87 @@ export default function SettingsPage() {
   return (
     <AuthGuard>
       <main className="h-screen w-screen bg-slate-50 flex flex-col font-sans text-slate-900 overflow-hidden text-board-black">
-        <div className="flex items-center gap-2 pr-4">
+        {/* Header row */}
+        <div className="flex items-center gap-2 pr-4 shrink-0">
           <AppHeader page="Slovníček (Admin)" onBack={() => router.push('/')} />
-          <DeskButton variant="outline" size="md" onClick={handleRegenerate} disabled={isAdminWorking} className="border-slate-300 text-slate-400 py-3 shrink-0">
-            {isAdminWorking ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <RefreshCw className="w-6 h-6 mr-3" />}
-            Regenerovat vše
-          </DeskButton>
+          <button
+            onClick={handleRegenerate}
+            disabled={isAdminWorking}
+            className="flex items-center justify-center gap-2 shrink-0 p-2.5 rounded-xl border-2 border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-colors disabled:opacity-50"
+            title="Regenerovat vše"
+          >
+            {isAdminWorking ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
+            <span className="hidden sm:inline text-sm font-bold">Regenerovat vše</span>
+          </button>
         </div>
-        <div className="px-6 pb-6 flex flex-col flex-1 min-h-0">
 
-        <div className="flex gap-8 flex-1 min-h-0 text-board-black">
-          <div className="w-[400px] bg-white p-8 rounded-[3rem] shadow-xl border-4 border-slate-100 flex flex-col gap-6 shrink-0">
-            <h2 className="text-3xl font-black mb-2">Nové slovíčko</h2>
-            <form onSubmit={handleAdd} className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-slate-400 font-bold uppercase tracking-widest text-xs ml-2">Anglicky</label>
+        {/* Content — scrollable on mobile, two-col on desktop */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-y-auto min-h-0">
+
+          {/* Add word panel */}
+          <div className="w-full lg:w-80 xl:w-96 bg-white p-5 rounded-[2rem] shadow-md border-2 border-slate-100 flex flex-col gap-4 shrink-0">
+            <h2 className="text-xl font-black">Nové slovíčko</h2>
+            <form onSubmit={handleAdd} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-slate-400 font-bold uppercase tracking-widest text-xs ml-1">Anglicky</label>
                 <input
                   type="text"
                   value={enWord}
                   onChange={(e) => setEnWord(e.target.value)}
-                  className="w-full text-3xl font-black py-5 px-6 rounded-2xl border-4 border-slate-100 focus:border-class-green outline-none bg-slate-50 text-slate-900"
+                  className="w-full text-2xl font-black py-3 px-4 rounded-2xl border-4 border-slate-100 focus:border-class-green outline-none bg-slate-50 text-slate-900"
                   placeholder="apple"
                   autoFocus
                 />
               </div>
               {errorMsg && (
-                <div className="bg-error/10 text-error p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
-                  <AlertCircle className="w-6 h-6 shrink-0" />
+                <div className="bg-error/10 text-error p-3 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
                   <p className="text-sm font-bold leading-tight">{errorMsg}</p>
                 </div>
               )}
-              <DeskButton size="lg" variant="outline" className="w-full py-6 text-2xl border-slate-800 text-slate-800 bg-white" type="submit" disabled={!enWord.trim() || isLoading || !isSupabaseConfigured}>
-                {isLoading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Plus className="w-8 h-8 mr-2" />}
+              <DeskButton size="md" variant="outline" className="w-full py-4 border-slate-800 text-slate-800 bg-white" type="submit" disabled={!enWord.trim() || isLoading || !isSupabaseConfigured}>
+                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6 mr-2" />}
                 {isLoading ? 'Ukládám...' : 'Přidat do slovníku'}
               </DeskButton>
             </form>
             <p className="text-[10px] text-slate-400 text-center mt-auto uppercase font-bold tracking-wider">Automaticky vytvoří zvuk a podobné varianty</p>
           </div>
 
-          <div className="flex-1 bg-white p-8 rounded-[3rem] shadow-xl border-4 border-slate-100 flex flex-col overflow-hidden text-board-black">
-            <div className="flex justify-between items-center mb-6 text-board-black">
-              <h2 className="text-3xl font-black">Seznam slovíček</h2>
-              <span className="bg-slate-100 px-4 py-1 rounded-full text-slate-400 font-bold text-sm">Počet: {words.length}</span>
+          {/* Word list */}
+          <div className="flex-1 bg-white p-5 rounded-[2rem] shadow-md border-2 border-slate-100 flex flex-col overflow-hidden min-h-[300px] lg:min-h-0">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-black">Seznam slovíček</h2>
+              <span className="bg-slate-100 px-3 py-1 rounded-full text-slate-400 font-bold text-sm">Počet: {words.length}</span>
             </div>
-            <div className="flex-1 overflow-y-auto pr-4 flex flex-col gap-3 text-board-black text-board-black">
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2">
               {words.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center opacity-20"><p className="text-2xl font-black uppercase">Prázdno</p></div>
+                <div className="flex-1 flex flex-col items-center justify-center opacity-20"><p className="text-xl font-black uppercase">Prázdno</p></div>
               ) : (
                 words.map((w) => (
-                  <div key={w.id} className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border-2 border-slate-100 hover:border-slate-200 transition-all text-board-black">
-                    <div className="flex items-center gap-8 text-3xl font-black text-board-black text-board-black">
-                      <div className="text-slate-900 uppercase">{w.en}</div>
-                      <div className="flex items-center gap-1 text-slate-300">
-                        <Calendar className="w-3 h-3" /><p className="text-[10px] font-bold uppercase tracking-wider">{new Date(w.created_at).toLocaleDateString('cs-CZ')}</p>
+                  <div key={w.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border-2 border-slate-100 hover:border-slate-200 transition-all">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="text-lg font-black text-slate-900 uppercase truncate">{w.en}</div>
+                      <div className="flex items-center gap-1 text-slate-300 shrink-0">
+                        <Calendar className="w-3 h-3" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider">{new Date(w.created_at).toLocaleDateString('cs-CZ')}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      {w.audio_url && (<button onClick={() => playPreview(w.audio_url!)} className="text-class-green hover:bg-white p-3 rounded-xl transition-all"><Volume2 className="w-6 h-6" /></button>)}
-                      <button onClick={() => handleDelete(w.id, w.audio_url)} className="text-slate-200 hover:text-error transition-colors p-3 rounded-xl"><Trash2 className="w-6 h-6" /></button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {w.audio_url && (
+                        <button onClick={() => playPreview(w.audio_url!)} className="text-class-green hover:bg-white p-2.5 rounded-xl transition-all">
+                          <Volume2 className="w-5 h-5" />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(w.id, w.audio_url)} className="text-slate-300 hover:text-error transition-colors p-2.5 rounded-xl">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </div>
                   </div>
                 ))
               )}
             </div>
           </div>
-        </div>
+
         </div>
       </main>
     </AuthGuard>
