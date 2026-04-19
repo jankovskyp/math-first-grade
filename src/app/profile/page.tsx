@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { usePlayer, AvatarType } from '@/context/PlayerContext';
 import { DeskButton } from '@/components/shared/DeskButton';
 import { AppHeader } from '@/components/shared/AppHeader';
 import { AuthGuard } from '@/components/shared/AuthGuard';
 import { Save, Loader2, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
+import { updatePlayerProfile } from '@/app/actions/player';
 
 const AVATARS: { id: AvatarType; label: string }[] = [
     { id: 'avatar_lion',     label: 'Lev' },
@@ -34,7 +34,7 @@ export default function ProfilePage() {
     const [saved, setSaved] = useState(false);
 
     const handleSave = async () => {
-        if (!player || !supabase) return;
+        if (!player) return;
         setError('');
         setSaved(false);
 
@@ -42,30 +42,11 @@ export default function ProfilePage() {
         if (!newUsername) { setError('Přezdívka nesmí být prázdná.'); return; }
 
         setIsLoading(true);
-
-        // Uniqueness check only when name changed
-        if (newUsername.toLowerCase() !== player.username.toLowerCase()) {
-            const { data: existing } = await supabase
-                .from('players')
-                .select('id')
-                .ilike('username', newUsername)
-                .maybeSingle();
-            if (existing) {
-                setError('Tato přezdívka už někdo používá. Zkus jinou!');
-                setIsLoading(false);
-                return;
-            }
-        }
-
-        const { error: updateError } = await supabase
-            .from('players')
-            .update({ username: newUsername, avatar })
-            .eq('id', player.id);
-
+        const result = await updatePlayerProfile(player.id, newUsername, avatar);
         setIsLoading(false);
 
-        if (updateError) {
-            setError('Nepodařilo se uložit změny.');
+        if (result.error) {
+            setError(result.error);
         } else {
             setPlayer({ ...player, username: newUsername, avatar });
             setSaved(true);

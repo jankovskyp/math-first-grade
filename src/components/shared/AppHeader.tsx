@@ -24,38 +24,38 @@ export function AppHeader({ subject, page, onBack, showLogout = false, rightCont
   const isHome = showLogout;
 
   return (
-    <header className={`flex items-center gap-3 shrink-0 ${isHome ? 'px-5 pt-5 pb-3' : 'px-4 pt-4 pb-2 gap-2'}`}>
+    <header className={`flex items-center gap-3 shrink-0 ${isHome ? 'px-5 pt-5 pb-3' : 'px-5 pt-5 pb-3'}`}>
       {/* Left: optional back arrow + owl icon */}
       <div className="flex items-center gap-1 shrink-0">
         {onBack && (
           <button
             onClick={onBack}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-board-black transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-board-black transition-colors"
             aria-label="Zpět"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
         )}
         <Image
           src="/icon.png"
           alt="Chytrý Školák"
-          width={isHome ? 52 : 32}
-          height={isHome ? 52 : 32}
-          className={`${isHome ? 'w-13 h-13' : 'w-8 h-8'} mix-blend-multiply`}
+          width={isHome ? 52 : 44}
+          height={isHome ? 52 : 44}
+          className={`${isHome ? 'w-13 h-13' : 'w-11 h-11'} mix-blend-multiply`}
           priority
         />
       </div>
 
       {/* Centre: breadcrumb */}
-      <div className="flex-1 flex items-center gap-1 min-w-0 px-1">
+      <div className="flex-1 flex items-center gap-1.5 min-w-0 px-1">
         {subject && (
-          <span className="text-sm font-black uppercase tracking-widest text-class-green truncate">
+          <span className="text-base font-black uppercase tracking-widest text-class-green truncate">
             {subject}
           </span>
         )}
-        {subject && page && <ChevronRight className="w-3 h-3 text-slate-300 shrink-0" />}
+        {subject && page && <ChevronRight className="w-4 h-4 text-slate-300 shrink-0" />}
         {page && (
-          <span className="text-sm font-black uppercase tracking-widest text-slate-400 truncate">
+          <span className="text-base font-black uppercase tracking-widest text-slate-400 truncate">
             {page}
           </span>
         )}
