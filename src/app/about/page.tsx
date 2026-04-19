@@ -8,7 +8,7 @@ export default function AboutPage() {
   const router = useRouter();
 
   return (
-    <main className="h-screen w-screen bg-white flex flex-col font-sans text-board-black">
+    <main className="h-screen w-screen bg-desk-white flex flex-col font-sans text-board-black">
       <div className="w-full h-full flex flex-col overflow-hidden">
 
         <AppHeader page="O aplikaci" onBack={() => router.back()} />

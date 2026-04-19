@@ -112,7 +112,7 @@ export default function SettingsPage() {
   if (!isAuthorized) {
     return (
       <AuthGuard>
-        <main className="h-screen w-screen bg-white flex flex-col font-sans text-board-black">
+        <main className="h-screen w-screen bg-desk-white flex flex-col font-sans text-board-black">
           <div className="w-full h-full flex flex-col overflow-hidden">
             <AppHeader onBack={() => router.push('/')} />
             <div className="flex-1 flex flex-col items-center justify-center p-6 overflow-y-auto">
@@ -147,7 +147,7 @@ export default function SettingsPage() {
   // Admin Screen (Authorized)
   return (
     <AuthGuard>
-      <main className="h-screen w-screen bg-slate-50 flex flex-col font-sans text-slate-900 overflow-hidden text-board-black">
+      <main className="h-screen w-screen bg-desk-white flex flex-col font-sans overflow-hidden text-board-black">
 
         {/* Lightbox */}
         {lightboxUrl && (

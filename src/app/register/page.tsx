@@ -97,7 +97,7 @@ export default function RegisterScreen() {
     const deletePin = () => setPin(p => p.slice(0, -1));
 
     return (
-        <main className="h-screen w-screen bg-white flex flex-col font-sans text-board-black">
+        <main className="h-screen w-screen bg-desk-white flex flex-col font-sans text-board-black">
             <div className="w-full h-full flex flex-col overflow-hidden">
 
                 <AppHeader

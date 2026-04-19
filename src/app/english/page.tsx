@@ -5,7 +5,7 @@ import EnglishGameContainer from "@/components/english/EnglishGameContainer";
 export default function EnglishPage() {
   return (
     <AuthGuard>
-      <main className="h-screen w-screen overflow-hidden bg-white flex flex-col">
+      <main className="h-screen w-screen overflow-hidden bg-desk-white flex flex-col">
         <div className="relative w-full h-full flex flex-col">
           <EnglishGameContainer />
         </div>

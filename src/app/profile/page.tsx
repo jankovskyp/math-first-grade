@@ -56,7 +56,7 @@ export default function ProfilePage() {
 
     return (
         <AuthGuard>
-            <main className="h-screen w-screen bg-white flex flex-col font-sans text-board-black">
+            <main className="h-screen w-screen bg-desk-white flex flex-col font-sans text-board-black">
                 <div className="w-full h-full flex flex-col overflow-hidden">
 
                     <AppHeader page="Můj profil" onBack={() => router.push('/')} />

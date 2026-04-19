@@ -11,7 +11,7 @@ export default function MainMenu() {
 
   return (
     <AuthGuard>
-      <main className="h-screen w-screen overflow-hidden bg-white flex flex-col font-sans text-board-black">
+      <main className="h-screen w-screen overflow-hidden bg-desk-white flex flex-col font-sans text-board-black">
         <div className="w-full h-full flex flex-col">
           <AppHeader showLogout />
           <div className="flex-1 flex flex-col items-center justify-center px-6 pb-6">
