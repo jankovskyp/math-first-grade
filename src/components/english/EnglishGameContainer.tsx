@@ -500,8 +500,12 @@ export default function EnglishGameContainer() {
           <div className="flex flex-col gap-2 items-center w-full">
             <p className="text-xs font-black text-slate-300 uppercase tracking-widest">Vyber jeden režim</p>
             <div className="flex gap-2 w-full">
-              {(['listen', 'spelling'] as EnglishMode[]).map(op => {
-                const labels = { listen: 'Poslech', spelling: 'Psaní' };
+              {([
+                'listen',
+                'spelling',
+                ...(words.some(w => w.image_url) ? ['picture'] : []),
+              ] as EnglishMode[]).map(op => {
+                const labels: Record<EnglishMode, string> = { listen: 'Poslech', spelling: 'Psaní', picture: 'Obrázky' };
                 return (
                   <DeskButton
                     key={op}
@@ -535,7 +539,9 @@ export default function EnglishGameContainer() {
 
   // ── PLAYING ───────────────────────────────────────────────────────────────
   if (gameState === 'PLAYING' && currentProblem) {
-    const isSpelling = currentProblem.type === 'spelling';
+    const isSpelling      = currentProblem.type === 'spelling';
+    const isPictureToWord = currentProblem.type === 'picture' && currentProblem.pictureVariant === 'picture_to_word';
+    const isWordToPicture = currentProblem.type === 'picture' && currentProblem.pictureVariant === 'word_to_picture';
 
     return (
       <div className="flex flex-col h-full p-4 font-sans text-board-black">
@@ -581,8 +587,22 @@ export default function EnglishGameContainer() {
         </div>
 
         {/* ── Question / listen area ───────────────────────────────────── */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden">
-          {currentProblem.questionText === '?' ? (
+        <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden px-2">
+          {isPictureToWord ? (
+            /* Picture-to-word: show the image as the question */
+            <div className="relative w-full rounded-3xl overflow-hidden shadow-xl" style={{ height: 'min(44vh, 280px)' }}>
+              <Image src={currentProblem.questionImageUrl!} alt="" fill className="object-cover" />
+              {currentProblem.audioUrl && (
+                <button
+                  type="button"
+                  onClick={() => playAudio(currentProblem.audioUrl!)}
+                  className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all"
+                >
+                  <Volume2 className="w-5 h-5 text-class-green" />
+                </button>
+              )}
+            </div>
+          ) : currentProblem.questionText === '?' ? (
             /* Listen mode: big tappable sound button */
             <button
               type="button"
@@ -600,7 +620,36 @@ export default function EnglishGameContainer() {
 
         {/* ── Answer area ──────────────────────────────────────────────── */}
         <div className="flex-shrink-0 pb-2 w-full">
-          {isSpelling ? (
+          {isWordToPicture ? (
+            /* Word-to-picture: 2×2 grid of image tiles */
+            <div className="grid grid-cols-2 gap-3 w-full px-2 max-w-xl mx-auto">
+              {currentProblem.imageOptions!.map((opt, i) => (
+                <button
+                  key={`${currentProblem.id}-${i}`}
+                  onClick={() => handleAnswer(opt.word)}
+                  disabled={feedback === 'correct' || clickedOptions.has(opt.word)}
+                  className={`relative aspect-square rounded-2xl overflow-hidden border-4 transition-all touch-manipulation
+                    ${feedback === 'correct' && opt.word === currentProblem.correctAnswer
+                      ? 'border-success'
+                      : clickedOptions.has(opt.word)
+                      ? 'border-error opacity-60'
+                      : 'border-transparent hover:border-class-green/30 active:scale-95'}`}
+                >
+                  <Image src={opt.imageUrl} alt="" fill className="object-cover" />
+                  {feedback === 'correct' && opt.word === currentProblem.correctAnswer && (
+                    <div className="absolute inset-0 bg-success/20 flex items-center justify-center">
+                      <CheckCircle2 className="w-14 h-14 text-success drop-shadow-lg" />
+                    </div>
+                  )}
+                  {clickedOptions.has(opt.word) && opt.word !== currentProblem.correctAnswer && (
+                    <div className="absolute inset-0 bg-error/20 flex items-center justify-center">
+                      <XCircle className="w-14 h-14 text-error drop-shadow-lg" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          ) : isSpelling ? (
             <div className="flex flex-col items-center gap-3 w-full">
               <SpellingKeyboard
                 value={spellingInput}

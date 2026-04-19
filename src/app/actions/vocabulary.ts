@@ -1,27 +1,45 @@
 'use server';
 
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const geminiApiKey = process.env.GEMINI_API_KEY || '';
 
-// Logic to generate similar-looking/sounding words
+// ── Universal image generation prompt ────────────────────────────────────────
+
+const IMAGE_PROMPT = (word: string) => `Create a simple educational flashcard illustration for the English word: "${word}"
+
+Style: flat vector illustration, white background, bright friendly colors, clean outlines, no text or labels in the image, suitable for children aged 6–10.
+
+Guidelines by word type:
+- Nouns & animals: draw the object or animal clearly, full body, centered, recognisable at a glance
+- Prepositions of place (in, on, under, behind, between, next to, in front of…): show a small colorful ball and a simple wooden box demonstrating that exact spatial relationship
+- Adjectives of size (big, small, tall, short, long…): two similar objects side by side showing the contrast clearly
+- Adjectives of feeling or state (happy, sad, angry, tired, scared…): a simple round face expressing that emotion
+- Colors: a large rounded square filled with that color, slight drop shadow
+- Numbers: that many identical simple star shapes arranged neatly
+- Action verbs (run, jump, eat, sleep, swim, fly…): a minimal cartoon character performing the action
+- Weather or nature words (rain, sun, snow, wind…): a clear simple scene showing that weather
+
+The illustration must be immediately understandable to a 7-year-old child with no prior context. Do not include any letters, words, or numbers in the image.`;
+
+// ── Distractor generation ────────────────────────────────────────────────────
+
 function generateVisualDistractors(word: string): string[] {
   const misspellings = new Set<string>();
   const vowels = ['a', 'e', 'i', 'o', 'u', 'y'];
   const baseWord = word.trim().toLowerCase();
 
-  // 1. Double letters or remove double letters
   for (let i = 0; i < baseWord.length - 1; i++) {
     if (baseWord[i] === baseWord[i + 1]) {
-      misspellings.add(baseWord.slice(0, i) + baseWord.slice(i + 1)); // remove one
+      misspellings.add(baseWord.slice(0, i) + baseWord.slice(i + 1));
     } else {
-      misspellings.add(baseWord.slice(0, i + 1) + baseWord[i] + baseWord.slice(i + 1)); // double it
+      misspellings.add(baseWord.slice(0, i + 1) + baseWord[i] + baseWord.slice(i + 1));
     }
   }
 
-  // 2. Replace vowels with other vowels
   for (let i = 0; i < baseWord.length; i++) {
     if (vowels.includes(baseWord[i])) {
       vowels.filter(v => v !== baseWord[i]).forEach(v => {
@@ -30,12 +48,10 @@ function generateVisualDistractors(word: string): string[] {
     }
   }
 
-  // 3. Swap adjacent letters
   for (let i = 0; i < baseWord.length - 1; i++) {
     misspellings.add(baseWord.slice(0, i) + baseWord[i + 1] + baseWord[i] + baseWord.slice(i + 2));
   }
 
-  // 4. Common phonetic substitutions
   const phoneticMap: Record<string, string[]> = {
     'ph': ['f'], 'f': ['ph', 'v'], 'c': ['k', 's'], 'k': ['c'], 's': ['c', 'z'], 'z': ['s'],
     'ea': ['ee', 'e'], 'ee': ['ea', 'i'], 'ou': ['ow', 'o'], 'ow': ['ou'], 'th': ['d', 't', 'f'],
@@ -50,7 +66,6 @@ function generateVisualDistractors(word: string): string[] {
     }
   }
 
-  // 5. Remove one letter (for words > 2 letters)
   if (baseWord.length > 2) {
     for (let i = 0; i < baseWord.length; i++) {
       misspellings.add(baseWord.slice(0, i) + baseWord.slice(i + 1));
@@ -66,7 +81,6 @@ function generateVisualDistractors(word: string): string[] {
 async function getEnhancedDistractors(en: string) {
   const enLower = en.toLowerCase().trim();
 
-  // Try to get real similar words from Datamuse (sounds like)
   let soundsLike: string[] = [];
   try {
     const res = await fetch(`https://api.datamuse.com/words?sl=${encodeURIComponent(enLower)}&max=10`);
@@ -74,7 +88,6 @@ async function getEnhancedDistractors(en: string) {
     soundsLike = data.map((item: { word: string }) => item.word.toLowerCase());
   } catch { }
 
-  // Mix real words with generated variations
   const visual = [...new Set([...generateVisualDistractors(enLower), ...soundsLike])]
     .filter((w: string) => /^[a-z\s]+$/i.test(w) && w !== enLower && w.length > 1)
     .slice(0, 20);
@@ -82,44 +95,7 @@ async function getEnhancedDistractors(en: string) {
   return visual;
 }
 
-export async function addVocabularyWord(en: string) {
-  if (!en) return { error: 'Chybí slovíčko' };
-  if (!supabaseServiceKey) return { error: 'Chybí klíč SUPABASE_SERVICE_ROLE_KEY' };
-
-  try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const enNormalized = en.trim().toLowerCase();
-
-    const { data: existing } = await supabase
-      .from('vocabulary')
-      .select('id')
-      .eq('en', enNormalized)
-      .maybeSingle();
-
-    if (existing) return { error: `Slovíčko "${enNormalized}" už existuje!` };
-
-    const distractors = await getEnhancedDistractors(enNormalized);
-    const audioUrl = await generateAndUploadAudio(enNormalized, supabase);
-
-    const { data, error: dbError } = await supabase
-      .from('vocabulary')
-      .insert([{
-        en: enNormalized,
-        audio_url: audioUrl,
-        distractors: distractors,
-        created_at: new Date().toISOString()
-      }])
-      .select();
-
-    if (dbError) throw dbError;
-    return { success: true, data };
-  } catch (err: unknown) {
-    console.error('Error in addVocabularyWord:', err);
-    return { error: (err as Error).message || 'Nepodařilo se přidat slovíčko' };
-  }
-}
-
-import { SupabaseClient } from '@supabase/supabase-js';
+// ── Audio generation ─────────────────────────────────────────────────────────
 
 async function generateAndUploadAudio(en: string, supabase: SupabaseClient) {
   const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.mp3`;
@@ -144,6 +120,104 @@ async function generateAndUploadAudio(en: string, supabase: SupabaseClient) {
   return publicUrl;
 }
 
+// ── Image generation via Gemini ──────────────────────────────────────────────
+
+async function generateAndUploadImage(en: string, supabase: SupabaseClient): Promise<string | null> {
+  if (!geminiApiKey) return null;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: IMAGE_PROMPT(en) }] }],
+          generationConfig: { responseModalities: ['IMAGE'] },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      console.error('[IMG] Gemini error:', res.status, await res.text());
+      return null;
+    }
+
+    const data = await res.json();
+    const part = data?.candidates?.[0]?.content?.parts?.find(
+      (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData
+    );
+
+    if (!part?.inlineData?.data) {
+      console.error('[IMG] No image data in response');
+      return null;
+    }
+
+    const imageBuffer = Buffer.from(part.inlineData.data, 'base64');
+    const mimeType: string = part.inlineData.mimeType || 'image/png';
+    const ext = mimeType.includes('jpeg') ? 'jpg' : 'png';
+    const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.${ext}`;
+
+    // Ensure bucket exists (silently ignores if already exists)
+    await supabase.storage.createBucket('images', { public: true }).catch(() => {});
+
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(fileName, imageBuffer, { contentType: mimeType });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+    return publicUrl;
+  } catch (err) {
+    console.error('[IMG] Image generation failed:', err);
+    return null;
+  }
+}
+
+// ── Public actions ────────────────────────────────────────────────────────────
+
+export async function addVocabularyWord(en: string) {
+  if (!en) return { error: 'Chybí slovíčko' };
+  if (!supabaseServiceKey) return { error: 'Chybí klíč SUPABASE_SERVICE_ROLE_KEY' };
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const enNormalized = en.trim().toLowerCase();
+
+    const { data: existing } = await supabase
+      .from('vocabulary')
+      .select('id')
+      .eq('en', enNormalized)
+      .maybeSingle();
+
+    if (existing) return { error: `Slovíčko "${enNormalized}" už existuje!` };
+
+    const [distractors, audioUrl, imageUrl] = await Promise.all([
+      getEnhancedDistractors(enNormalized),
+      generateAndUploadAudio(enNormalized, supabase),
+      generateAndUploadImage(enNormalized, supabase),
+    ]);
+
+    const { data, error: dbError } = await supabase
+      .from('vocabulary')
+      .insert([{
+        en: enNormalized,
+        audio_url: audioUrl,
+        distractors,
+        image_url: imageUrl,
+        created_at: new Date().toISOString()
+      }])
+      .select();
+
+    if (dbError) throw dbError;
+    return { success: true, data };
+  } catch (err: unknown) {
+    console.error('Error in addVocabularyWord:', err);
+    return { error: (err as Error).message || 'Nepodařilo se přidat slovíčko' };
+  }
+}
+
 export async function adminRegenerateAll() {
   if (!supabaseServiceKey) return { error: 'Unauthorized' };
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -154,12 +228,18 @@ export async function adminRegenerateAll() {
 
     let updatedCount = 0;
     for (const word of (words || [])) {
-      const distractors = await getEnhancedDistractors(word.en);
+      const [distractors, imageUrl] = await Promise.all([
+        getEnhancedDistractors(word.en),
+        word.image_url
+          ? Promise.resolve(word.image_url as string)
+          : generateAndUploadImage(word.en, supabase),
+      ]);
       const audioUrl = word.audio_url || await generateAndUploadAudio(word.en, supabase);
 
       await supabase.from('vocabulary').update({
         distractors,
-        audio_url: audioUrl
+        audio_url: audioUrl,
+        image_url: imageUrl,
       }).eq('id', word.id);
       updatedCount++;
     }

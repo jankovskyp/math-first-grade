@@ -1,11 +1,12 @@
-export type EnglishMode = 'listen' | 'spelling';
+export type EnglishMode = 'listen' | 'spelling' | 'picture';
 
 export interface VocabularyWord {
   id: string;
   en: string;
   audio_url?: string;
+  image_url?: string;
   created_at: string;
-  distractors?: string[]; // Only visual/phonetic similar words
+  distractors?: string[];
 }
 
 export interface EnglishProblem {
@@ -15,6 +16,10 @@ export interface EnglishProblem {
   correctAnswer: string;
   options?: string[];
   audioUrl?: string;
+  // Picture mode
+  pictureVariant?: 'picture_to_word' | 'word_to_picture';
+  questionImageUrl?: string;
+  imageOptions?: { word: string; imageUrl: string }[];
 }
 
 export type EnglishGameState = 'HOME' | 'SETUP' | 'PLAYING' | 'RESULTS' | 'LEADERBOARD';

@@ -204,11 +204,22 @@ export default function SettingsPage() {
               ) : (
                 words.map((w) => (
                   <div key={w.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border-2 border-slate-100 hover:border-slate-200 transition-all">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="text-lg font-black text-slate-900 uppercase truncate">{w.en}</div>
-                      <div className="flex items-center gap-1 text-slate-300 shrink-0">
-                        <Calendar className="w-3 h-3" />
-                        <p className="text-[10px] font-bold uppercase tracking-wider">{new Date(w.created_at).toLocaleDateString('cs-CZ')}</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {w.image_url ? (
+                        <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200">
+                          <Image src={w.image_url} alt={w.en} fill className="object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0 flex items-center justify-center">
+                          <span className="text-slate-400 text-[9px] font-bold uppercase">–</span>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-lg font-black text-slate-900 uppercase truncate">{w.en}</div>
+                        <div className="flex items-center gap-1 text-slate-300">
+                          <Calendar className="w-3 h-3" />
+                          <p className="text-[10px] font-bold uppercase tracking-wider">{new Date(w.created_at).toLocaleDateString('cs-CZ')}</p>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
