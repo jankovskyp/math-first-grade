@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { DeskButton } from '@/components/shared/DeskButton';
 import { AppHeader } from '@/components/shared/AppHeader';
-import { Plus, Trash2, Loader2, Calendar, Volume2, RefreshCw, AlertCircle, Lock, ChevronLeft } from 'lucide-react';
+import { Plus, Trash2, Loader2, Calendar, Volume2, RefreshCw, AlertCircle, Lock, ChevronLeft, ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { addVocabularyWord, adminRegenerateAll } from '../actions/vocabulary';
+import { addVocabularyWord, adminRegenerateAll, regenerateWordImage } from '../actions/vocabulary';
 import { VocabularyWord } from '@/types/english';
 import { AuthGuard } from '@/components/shared/AuthGuard';
 
@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAdminWorking, setIsAdminWorking] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [regeneratingImageId, setRegeneratingImageId] = useState<string | null>(null);
 
   // Auth state
   const [password, setPassword] = useState('');
@@ -66,6 +67,17 @@ export default function SettingsPage() {
     if (result.success) {
       alert(`Hotovo! Aktualizováno ${result.count} slovíček.`);
       fetchWords();
+    }
+  };
+
+  const handleRegenerateImage = async (id: string) => {
+    setRegeneratingImageId(id);
+    const result = await regenerateWordImage(id);
+    setRegeneratingImageId(null);
+    if (result.success) {
+      fetchWords();
+    } else {
+      alert(result.error || 'Nepodařilo se vygenerovat obrázek');
     }
   };
 
@@ -228,6 +240,16 @@ export default function SettingsPage() {
                           <Volume2 className="w-5 h-5" />
                         </button>
                       )}
+                      <button
+                        onClick={() => handleRegenerateImage(w.id)}
+                        disabled={regeneratingImageId === w.id}
+                        title="Vygenerovat obrázek znovu"
+                        className="text-slate-300 hover:text-class-green transition-colors p-2.5 rounded-xl disabled:opacity-50"
+                      >
+                        {regeneratingImageId === w.id
+                          ? <Loader2 className="w-5 h-5 animate-spin" />
+                          : <ImageIcon className="w-5 h-5" />}
+                      </button>
                       <button onClick={() => handleDelete(w.id, w.audio_url)} className="text-slate-300 hover:text-error transition-colors p-2.5 rounded-xl">
                         <Trash2 className="w-5 h-5" />
                       </button>

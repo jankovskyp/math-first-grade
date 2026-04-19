@@ -218,6 +218,34 @@ export async function addVocabularyWord(en: string) {
   }
 }
 
+export async function regenerateWordImage(id: string) {
+  if (!supabaseServiceKey) return { error: 'Unauthorized' };
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  try {
+    const { data: word, error: fetchError } = await supabase
+      .from('vocabulary')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (fetchError) throw fetchError;
+
+    const imageUrl = await generateAndUploadImage(word.en, supabase);
+    if (!imageUrl) return { error: 'Generování obrázku selhalo' };
+
+    const { error: updateError } = await supabase
+      .from('vocabulary')
+      .update({ image_url: imageUrl })
+      .eq('id', id);
+    if (updateError) throw updateError;
+
+    return { success: true, image_url: imageUrl };
+  } catch (err: unknown) {
+    console.error('regenerateWordImage error:', err);
+    return { error: (err as Error).message };
+  }
+}
+
 export async function adminRegenerateAll() {
   if (!supabaseServiceKey) return { error: 'Unauthorized' };
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
