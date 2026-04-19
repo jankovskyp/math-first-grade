@@ -123,56 +123,53 @@ async function generateAndUploadAudio(en: string, supabase: SupabaseClient) {
 // ── Image generation via Gemini ──────────────────────────────────────────────
 
 async function generateAndUploadImage(en: string, supabase: SupabaseClient): Promise<string | null> {
-  if (!geminiApiKey) return null;
+  if (!geminiApiKey) throw new Error('GEMINI_API_KEY není nastaven');
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: IMAGE_PROMPT(en) }] }],
-          generationConfig: { responseModalities: ['IMAGE'] },
-        }),
-      }
-    );
-
-    if (!res.ok) {
-      console.error('[IMG] Gemini error:', res.status, await res.text());
-      return null;
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${geminiApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: IMAGE_PROMPT(en) }] }],
+        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+      }),
     }
+  );
 
-    const data = await res.json();
-    const part = data?.candidates?.[0]?.content?.parts?.find(
-      (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData
-    );
-
-    if (!part?.inlineData?.data) {
-      console.error('[IMG] No image data in response');
-      return null;
-    }
-
-    const imageBuffer = Buffer.from(part.inlineData.data, 'base64');
-    const mimeType: string = part.inlineData.mimeType || 'image/png';
-    const ext = mimeType.includes('jpeg') ? 'jpg' : 'png';
-    const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.${ext}`;
-
-    // Ensure bucket exists (silently ignores if already exists)
-    await supabase.storage.createBucket('images', { public: true }).catch(() => {});
-
-    const { error: uploadError } = await supabase.storage
-      .from('images')
-      .upload(fileName, imageBuffer, { contentType: mimeType });
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
-    return publicUrl;
-  } catch (err) {
-    console.error('[IMG] Image generation failed:', err);
-    return null;
+  if (!res.ok) {
+    const body = await res.text();
+    console.error('[IMG] Gemini error:', res.status, body);
+    throw new Error(`Gemini API ${res.status}: ${body.slice(0, 200)}`);
   }
+
+  const data = await res.json();
+  const part = data?.candidates?.[0]?.content?.parts?.find(
+    (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData
+  );
+
+  if (!part?.inlineData?.data) {
+    const raw = JSON.stringify(data).slice(0, 300);
+    console.error('[IMG] No image data in response:', raw);
+    throw new Error(`Gemini nevrátil obrázek. Response: ${raw}`);
+  }
+
+  const imageBuffer = Buffer.from(part.inlineData.data, 'base64');
+  const mimeType: string = part.inlineData.mimeType || 'image/png';
+  const ext = mimeType.includes('jpeg') ? 'jpg' : 'png';
+  const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.${ext}`;
+
+  // Ensure bucket exists (silently ignores if already exists)
+  await supabase.storage.createBucket('images', { public: true }).catch(() => {});
+
+  const { error: uploadError } = await supabase.storage
+    .from('images')
+    .upload(fileName, imageBuffer, { contentType: mimeType });
+
+  if (uploadError) throw new Error(`Supabase upload: ${uploadError.message}`);
+
+  const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName);
+  return publicUrl;
 }
 
 // ── Public actions ────────────────────────────────────────────────────────────
@@ -196,7 +193,10 @@ export async function addVocabularyWord(en: string) {
     const [distractors, audioUrl, imageUrl] = await Promise.all([
       getEnhancedDistractors(enNormalized),
       generateAndUploadAudio(enNormalized, supabase),
-      generateAndUploadImage(enNormalized, supabase),
+      generateAndUploadImage(enNormalized, supabase).catch((err: Error) => {
+        console.error('[IMG] Skipping image for new word:', err.message);
+        return null;
+      }),
     ]);
 
     const { data, error: dbError } = await supabase
