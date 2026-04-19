@@ -397,8 +397,8 @@ export default function EnglishGameContainer() {
           <DeskButton size="md" variant={leaderboardTab === 'all' ? 'primary' : 'outline'} className="border-none shadow-none py-2 px-4 whitespace-nowrap" onClick={() => setLeaderboardTab('all')}>
             Všechno
           </DeskButton>
-          {(['listen', 'spelling'] as const).map(m => {
-            const labels = { listen: 'Poslech', spelling: 'Psaní' };
+          {(['listen', 'spelling', 'picture'] as const).map(m => {
+            const labels = { listen: 'Poslech', spelling: 'Psaní', picture: 'Obrázky' };
             return (
               <DeskButton key={m} size="md" variant={leaderboardTab === m ? 'primary' : 'outline'} className="border-none shadow-none py-2 px-4 whitespace-nowrap" onClick={() => setLeaderboardTab(m)}>
                 {labels[m]}
@@ -424,7 +424,7 @@ export default function EnglishGameContainer() {
                 <span className="w-14 text-center font-black shrink-0">Body</span>
               </div>
               {filteredLeaderboard.map((entry, i) => {
-                const labels = { listen: 'POSLECH', spelling: 'PSANÍ' };
+                const labels = { listen: 'POSLECH', spelling: 'PSANÍ', picture: 'OBRÁZKY' };
                 return (
                   <div key={entry.id} className="flex items-center p-3 bg-slate-50 rounded-xl">
                     <span className="w-10 flex justify-center shrink-0">
