@@ -334,7 +334,8 @@ export default function MathGameContainer() {
               ))}
             </div>
             {operations.includes('decomposition') && (
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-300 uppercase tracking-widest shrink-0">Rozklad →</span>
                 <DeskButton size="md" variant={decompositionVariant === 'easy' ? 'primary' : 'outline'} className="min-w-[90px] py-1.5 text-base" onClick={() => setDecompositionVariant('easy')}>Lehká</DeskButton>
                 <DeskButton size="md" variant={decompositionVariant === 'hard' ? 'primary' : 'outline'} className="min-w-[90px] py-1.5 text-base" onClick={() => setDecompositionVariant('hard')}>Těžká</DeskButton>
               </div>
