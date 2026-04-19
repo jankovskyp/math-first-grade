@@ -125,39 +125,38 @@ async function generateAndUploadAudio(en: string, supabase: SupabaseClient) {
 async function generateAndUploadImage(en: string, supabase: SupabaseClient): Promise<string | null> {
   if (!geminiApiKey) throw new Error('GEMINI_API_KEY není nastaven');
 
+  // Use Imagen 3 — dedicated image generation model available on Google AI Pro
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${geminiApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: IMAGE_PROMPT(en) }] }],
-        generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
+        instances: [{ prompt: IMAGE_PROMPT(en) }],
+        parameters: { sampleCount: 1, aspectRatio: '1:1', safetySetting: 'block_some' },
       }),
     }
   );
 
   if (!res.ok) {
     const body = await res.text();
-    console.error('[IMG] Gemini error:', res.status, body);
-    throw new Error(`Gemini API ${res.status}: ${body.slice(0, 200)}`);
+    console.error('[IMG] Imagen error:', res.status, body);
+    throw new Error(`Imagen API ${res.status}: ${body.slice(0, 200)}`);
   }
 
   const data = await res.json();
-  const part = data?.candidates?.[0]?.content?.parts?.find(
-    (p: { inlineData?: { mimeType: string; data: string } }) => p.inlineData
-  );
+  const prediction = data?.predictions?.[0];
 
-  if (!part?.inlineData?.data) {
+  if (!prediction?.bytesBase64Encoded) {
     const raw = JSON.stringify(data).slice(0, 300);
     console.error('[IMG] No image data in response:', raw);
-    throw new Error(`Gemini nevrátil obrázek. Response: ${raw}`);
+    throw new Error(`Imagen nevrátil obrázek. Response: ${raw}`);
   }
 
-  const imageBuffer = Buffer.from(part.inlineData.data, 'base64');
-  const mimeType: string = part.inlineData.mimeType || 'image/png';
+  const mimeType: string = prediction.mimeType || 'image/png';
   const ext = mimeType.includes('jpeg') ? 'jpg' : 'png';
   const fileName = `${Date.now()}-${en.replace(/[^a-z0-9]/gi, '_')}.${ext}`;
+  const imageBuffer = Buffer.from(prediction.bytesBase64Encoded, 'base64');
 
   // Ensure bucket exists (silently ignores if already exists)
   await supabase.storage.createBucket('images', { public: true }).catch(() => {});
