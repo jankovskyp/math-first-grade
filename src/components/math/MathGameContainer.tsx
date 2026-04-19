@@ -432,7 +432,7 @@ export default function MathGameContainer() {
           <div className="h-72 w-full max-w-4xl flex items-center justify-center">
             <div className={`grid gap-6 w-full ${isComparison ? 'grid-cols-3' : 'grid-cols-2'}`}>
               {displayOptions.map((opt, i) => (
-                <div key={`${currentProblem.id}-${i}`} className="w-full flex justify-center"><DeskButton size="xl" variant={feedback === 'correct' && opt === currentProblem.result ? 'success' : clickedOptions.has(opt) ? 'error' : 'primary'} className={`w-full h-32 font-black ${isHardDecomp ? 'text-3xl' : 'text-6xl'}`} onClick={() => handleAnswer(opt)} disabled={feedback === 'correct' || clickedOptions.has(opt)}>{opt}</DeskButton></div>
+                <div key={`${currentProblem.id}-${i}`} className="w-full flex justify-center"><DeskButton size="xl" variant={feedback === 'correct' && opt === currentProblem.result ? 'success' : clickedOptions.has(opt) ? 'error' : 'primary'} className={`w-full h-32 font-black whitespace-nowrap ${isHardDecomp ? 'text-3xl' : 'text-6xl'}`} onClick={() => handleAnswer(opt)} disabled={feedback === 'correct' || clickedOptions.has(opt)}>{opt}</DeskButton></div>
               ))}
             </div>
           </div>
