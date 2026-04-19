@@ -126,7 +126,7 @@ async function generateAndUploadImage(en: string, supabase: SupabaseClient): Pro
   if (!geminiApiKey) throw new Error('GEMINI_API_KEY není nastaven');
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${geminiApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${geminiApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
