@@ -11,23 +11,19 @@ const geminiApiKey = process.env.GEMINI_API_KEY || '';
 
 const IMAGE_PROMPT = (word: string) => `Create a simple educational flashcard illustration for the English word: "${word}"
 
-CRITICAL RULE — ABSOLUTELY NO TEXT: The image must contain zero letters, zero numbers, zero words, zero labels, zero captions, zero annotations of any kind. Any text anywhere in the image makes it unusable. The illustration alone must communicate the meaning.
+ABSOLUTE RULE — ZERO TEXT IN THE IMAGE: No letters, no words, no numbers, no labels, no captions anywhere in the illustration. Not even a single character. The image must work entirely through pictures and symbols.
 
-Style: flat vector illustration, pure white background, bright friendly colors, clean bold outlines, suitable for children aged 6–10. Square composition, subject centered with generous padding.
+Style: flat vector illustration, pure white background, bright friendly colors, clean bold outlines, suitable for children aged 6–10. Square format, well-centered.
 
-Word-specific guidelines:
-- Body parts (arm, ear, eye, face, foot, hand, leg, mouth, nose): draw that single body part as a cute isolated cartoon, large and centered, on white
-- Emotions / personality (angry, happy, sad, funny, ugly, nice, beautiful): a single simple round cartoon face showing that expression strongly — exaggerated eyebrows, eyes, mouth
-- "young": a cute baby animal (duckling or puppy), soft round shapes, clearly infant
-- "small": a single tiny cute object — a tiny star or a tiny strawberry — shown alone on a large white canvas to emphasise how small it is
-- "short": a single stubby cartoon pencil, clearly very short in height compared to its width
-- "long": a single very long cartoon snake or worm stretching across the full width
-- "beautiful": a smiling cartoon girl face with flowers in hair
-- Prepositions of place (in, on, under, next to, at, behind, between…): a red ball and a plain wooden box — ball positioned to demonstrate EXACTLY that spatial relationship
-- Nouns / concrete objects (body, house, arm, leg…): the object drawn clearly, whole, centered
-- Pronouns / abstract words (he, she, they, we, you, i am, my, your, is, are, do, said, this, these, to, how, what, when, where, who, why): one or two simple cartoon stick-figure characters acting out the concept — e.g. "my" = character pointing to self; "you" = character pointing outward; "they/we" = two figures side by side; question words = figure with a giant "?" speech bubble (the ? is a graphic symbol, not a letter — draw it as a curved shape)
+How to make the concept unambiguous:
+- If the word describes a property of one object among others (small, short, young, old, tall, long, dark, light…): draw TWO similar objects showing the contrast, then add a bold red arrow pointing at the one that represents the word. Example for "small": draw a big apple and a small apple, with a red arrow pointing at the small apple.
+- If the word is a concrete noun or body part: draw that single object clearly, large, centered.
+- If the word is an emotion or facial expression: draw a single round cartoon face with an exaggerated expression matching the word.
+- If the word is a spatial preposition (in, on, under, next to, behind, between…): show a red ball and a simple wooden box with the ball in the exact position the word describes.
+- If the word is a pronoun or abstract function word (he, she, they, we, you, my, your, i am…): show simple cartoon characters with a pointing gesture or arrow that conveys the relationship — one character pointing to self for "my/i am", pointing at another for "you/your", two characters side by side for "they/we", etc.
+- For question words (what, when, where, who, why, how): a cartoon character with a large "?" speech bubble (drawn as a graphic symbol shape, not a letter).
 
-The single illustration must be immediately obvious to a 7-year-old with zero context. Simple, bold, unambiguous. NO TEXT, NO LETTERS, NO NUMBERS anywhere.`;
+The image must be immediately obvious to a 7-year-old seeing it for the first time with no other context. Use arrows, highlights, or visual focus to remove any ambiguity about which concept is being illustrated. NO TEXT, NO LETTERS, NO NUMBERS anywhere in the image.`;
 
 // ── Distractor generation ────────────────────────────────────────────────────
 
