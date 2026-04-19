@@ -11,19 +11,23 @@ const geminiApiKey = process.env.GEMINI_API_KEY || '';
 
 const IMAGE_PROMPT = (word: string) => `Create a simple educational flashcard illustration for the English word: "${word}"
 
-Style: flat vector illustration, white background, bright friendly colors, clean outlines, no text or labels in the image, suitable for children aged 6–10.
+CRITICAL RULE — ABSOLUTELY NO TEXT: The image must contain zero letters, zero numbers, zero words, zero labels, zero captions, zero annotations of any kind. Any text anywhere in the image makes it unusable. The illustration alone must communicate the meaning.
 
-Guidelines by word type:
-- Nouns & animals: draw the object or animal clearly, full body, centered, recognisable at a glance
-- Prepositions of place (in, on, under, behind, between, next to, in front of…): show a small colorful ball and a simple wooden box demonstrating that exact spatial relationship
-- Adjectives of size (big, small, tall, short, long…): two similar objects side by side showing the contrast clearly
-- Adjectives of feeling or state (happy, sad, angry, tired, scared…): a simple round face expressing that emotion
-- Colors: a large rounded square filled with that color, slight drop shadow
-- Numbers: that many identical simple star shapes arranged neatly
-- Action verbs (run, jump, eat, sleep, swim, fly…): a minimal cartoon character performing the action
-- Weather or nature words (rain, sun, snow, wind…): a clear simple scene showing that weather
+Style: flat vector illustration, pure white background, bright friendly colors, clean bold outlines, suitable for children aged 6–10. Square composition, subject centered with generous padding.
 
-The illustration must be immediately understandable to a 7-year-old child with no prior context. Do not include any letters, words, or numbers in the image.`;
+Word-specific guidelines:
+- Body parts (arm, ear, eye, face, foot, hand, leg, mouth, nose): draw that single body part as a cute isolated cartoon, large and centered, on white
+- Emotions / personality (angry, happy, sad, funny, ugly, nice, beautiful): a single simple round cartoon face showing that expression strongly — exaggerated eyebrows, eyes, mouth
+- "young": a cute baby animal (duckling or puppy), soft round shapes, clearly infant
+- "small": a single tiny cute object — a tiny star or a tiny strawberry — shown alone on a large white canvas to emphasise how small it is
+- "short": a single stubby cartoon pencil, clearly very short in height compared to its width
+- "long": a single very long cartoon snake or worm stretching across the full width
+- "beautiful": a smiling cartoon girl face with flowers in hair
+- Prepositions of place (in, on, under, next to, at, behind, between…): a red ball and a plain wooden box — ball positioned to demonstrate EXACTLY that spatial relationship
+- Nouns / concrete objects (body, house, arm, leg…): the object drawn clearly, whole, centered
+- Pronouns / abstract words (he, she, they, we, you, i am, my, your, is, are, do, said, this, these, to, how, what, when, where, who, why): one or two simple cartoon stick-figure characters acting out the concept — e.g. "my" = character pointing to self; "you" = character pointing outward; "they/we" = two figures side by side; question words = figure with a giant "?" speech bubble (the ? is a graphic symbol, not a letter — draw it as a curved shape)
+
+The single illustration must be immediately obvious to a 7-year-old with zero context. Simple, bold, unambiguous. NO TEXT, NO LETTERS, NO NUMBERS anywhere.`;
 
 // ── Distractor generation ────────────────────────────────────────────────────
 
