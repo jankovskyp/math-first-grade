@@ -244,7 +244,7 @@ export default function EnglishGameContainer() {
     setSpellingInput('');
     const problem = generateEnglishProblem(currentWords, [selectedMode]);
     setCurrentProblem(problem);
-    if (problem?.audioUrl) setTimeout(() => playAudio(problem.audioUrl!), 300);
+    if (problem?.audioUrl && problem.type !== 'picture') setTimeout(() => playAudio(problem.audioUrl!), 300);
   }, [getFilteredWords, selectedMode]);
 
   const handleAnswer = (answer: string) => {
@@ -586,56 +586,28 @@ export default function EnglishGameContainer() {
           )}
         </div>
 
-        {/* ── Question / listen area ───────────────────────────────────── */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden px-2">
-          {isPictureToWord ? (
-            /* Picture-to-word: show the image as the question */
-            <div className="relative w-full rounded-3xl overflow-hidden shadow-xl" style={{ height: 'min(44vh, 280px)' }}>
-              <Image src={currentProblem.questionImageUrl!} alt="" fill className="object-cover" />
-              {currentProblem.audioUrl && (
-                <button
-                  type="button"
-                  onClick={() => playAudio(currentProblem.audioUrl!)}
-                  className="absolute top-3 right-3 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all"
-                >
-                  <Volume2 className="w-5 h-5 text-class-green" />
-                </button>
-              )}
+        {/* ── Picture mode: word → images (word at top, image grid fills remaining space) */}
+        {isWordToPicture && (
+          <>
+            <div className="flex-shrink-0 pb-3 px-2">
+              <div className="font-black tracking-tight text-center text-board-black drop-shadow-sm leading-tight" style={{ fontSize: 'clamp(2rem, 10vw, 5rem)' }}>
+                {currentProblem.questionText}
+              </div>
             </div>
-          ) : currentProblem.questionText === '?' ? (
-            /* Listen mode: big tappable sound button */
-            <button
-              type="button"
-              onClick={() => currentProblem.audioUrl && playAudio(currentProblem.audioUrl)}
-              className="w-44 h-44 rounded-full bg-class-green text-white flex items-center justify-center shadow-[0_8px_32px_rgba(124,58,237,0.4)] hover:shadow-[0_12px_48px_rgba(124,58,237,0.5)] active:scale-[0.95] transition-all"
-            >
-              <Volume2 className="w-24 h-24" strokeWidth={1.5} />
-            </button>
-          ) : (
-            <div className="font-black tracking-tight text-center text-board-black drop-shadow-sm px-4 leading-tight" style={{ fontSize: 'clamp(2.5rem, 14vw, 7rem)' }}>
-              {currentProblem.questionText}
-            </div>
-          )}
-        </div>
-
-        {/* ── Answer area ──────────────────────────────────────────────── */}
-        <div className="flex-shrink-0 pb-2 w-full">
-          {isWordToPicture ? (
-            /* Word-to-picture: 2×2 grid of image tiles */
-            <div className="grid grid-cols-2 gap-3 w-full px-2 max-w-xl mx-auto">
+            <div className="flex-1 min-h-0 grid grid-cols-2 gap-3 pb-2 px-2">
               {currentProblem.imageOptions!.map((opt, i) => (
                 <button
                   key={`${currentProblem.id}-${i}`}
                   onClick={() => handleAnswer(opt.word)}
                   disabled={feedback === 'correct' || clickedOptions.has(opt.word)}
-                  className={`relative aspect-square rounded-2xl overflow-hidden border-4 transition-all touch-manipulation
+                  className={`relative rounded-2xl overflow-hidden border-4 transition-all touch-manipulation
                     ${feedback === 'correct' && opt.word === currentProblem.correctAnswer
                       ? 'border-success'
                       : clickedOptions.has(opt.word)
                       ? 'border-error opacity-60'
                       : 'border-transparent hover:border-class-green/30 active:scale-95'}`}
                 >
-                  <Image src={opt.imageUrl} alt="" fill className="object-cover" />
+                  <Image src={opt.imageUrl} alt="" fill className="object-contain" />
                   {feedback === 'correct' && opt.word === currentProblem.correctAnswer && (
                     <div className="absolute inset-0 bg-success/20 flex items-center justify-center">
                       <CheckCircle2 className="w-14 h-14 text-success drop-shadow-lg" />
@@ -649,7 +621,42 @@ export default function EnglishGameContainer() {
                 </button>
               ))}
             </div>
-          ) : isSpelling ? (
+          </>
+        )}
+
+        {/* ── Question / listen area (non-picture or picture-to-word) ──── */}
+        {!isWordToPicture && (
+          <div className="flex-1 min-h-0 overflow-hidden px-2">
+            {isPictureToWord ? (
+              /* Picture-to-word: image fills all available height, no audio */
+              <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-xl">
+                <Image src={currentProblem.questionImageUrl!} alt="" fill className="object-contain" />
+              </div>
+            ) : currentProblem.questionText === '?' ? (
+              /* Listen mode: big tappable sound button */
+              <div className="w-full h-full flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => currentProblem.audioUrl && playAudio(currentProblem.audioUrl)}
+                  className="w-44 h-44 rounded-full bg-class-green text-white flex items-center justify-center shadow-[0_8px_32px_rgba(124,58,237,0.4)] hover:shadow-[0_12px_48px_rgba(124,58,237,0.5)] active:scale-[0.95] transition-all"
+                >
+                  <Volume2 className="w-24 h-24" strokeWidth={1.5} />
+                </button>
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="font-black tracking-tight text-center text-board-black drop-shadow-sm px-4 leading-tight" style={{ fontSize: 'clamp(2.5rem, 14vw, 7rem)' }}>
+                  {currentProblem.questionText}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Answer area (non-word-to-picture modes) ──────────────────── */}
+        {!isWordToPicture && (
+        <div className="flex-shrink-0 pb-2 w-full">
+          {isSpelling ? (
             <div className="flex flex-col items-center gap-3 w-full">
               <SpellingKeyboard
                 value={spellingInput}
@@ -692,6 +699,7 @@ export default function EnglishGameContainer() {
             </div>
           )}
         </div>
+        )}
       </div>
     );
   }
