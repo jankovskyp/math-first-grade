@@ -443,6 +443,9 @@ export default function EnglishGameContainer() {
                         <p className="text-sm font-black leading-tight uppercase truncate">{entry.name}</p>
                         <p className="text-[10px] text-slate-400 font-bold uppercase">
                           {labels[entry.mode as keyof typeof labels] || entry.mode}
+                          {entry.date && (
+                            <span className="text-slate-300 font-normal normal-case ml-1">· {entry.date}</span>
+                          )}
                         </p>
                       </div>
                     </div>

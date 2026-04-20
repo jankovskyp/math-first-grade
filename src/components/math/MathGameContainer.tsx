@@ -101,6 +101,7 @@ export default function MathGameContainer() {
           total: entry.total,
           accuracy: entry.accuracy,
           range: entry.range,
+          date: entry.date,
           player_id: player?.id
         }]);
       } catch (err: unknown) { console.error(err); }
@@ -289,7 +290,14 @@ export default function MathGameContainer() {
                     )}
                     <div className="min-w-0">
                       <p className="text-sm font-black leading-tight uppercase truncate">{entry.name}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">Do {entry.range}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">
+                        Do {entry.range}
+                        {(entry.date || (entry as LeaderboardEntry & { created_at?: string }).created_at) && (
+                          <span className="text-slate-300 font-normal normal-case ml-1">
+                            · {entry.date || new Date((entry as LeaderboardEntry & { created_at?: string }).created_at!).toLocaleDateString('cs-CZ')}
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   <div className="w-16 text-center text-sm font-black text-carpet-green bg-class-green/20 py-1 rounded-lg shrink-0">{entry.accuracy}%</div>
