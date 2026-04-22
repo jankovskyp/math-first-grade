@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { EnglishGameState, EnglishMode, EnglishProblem, EnglishStats, EnglishLeaderboardEntry, VocabularyWord } from '../../types/english';
 import { generateEnglishProblem, playAudio } from '../../lib/english-logic';
 import { DeskButton } from '../shared/DeskButton';
@@ -124,6 +124,33 @@ export default function EnglishGameContainer() {
   const [scorePop, setScorePop]       = useState(false);
   const [showNewRecord, setShowNewRecord] = useState(false);
 
+  // --- Shuffle-deck: every word appears once before any repeats ---
+  const wordDeckRef    = useRef<string[]>([]);  // ids for listen/spelling/picture
+  const lastWordIdRef  = useRef<string>('');
+
+  const pickNextWord = useCallback((pool: VocabularyWord[]): VocabularyWord => {
+    if (pool.length === 0) return pool[0];
+    if (pool.length === 1) return pool[0];
+    // Refill deck when empty
+    if (wordDeckRef.current.length === 0) {
+      const ids = pool.map(w => w.id);
+      // Fisher-Yates shuffle
+      for (let i = ids.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+      }
+      // Avoid starting new deck with the same word that just finished
+      if (ids[0] === lastWordIdRef.current && ids.length > 1) {
+        const swap = Math.floor(Math.random() * (ids.length - 1)) + 1;
+        [ids[0], ids[swap]] = [ids[swap], ids[0]];
+      }
+      wordDeckRef.current = ids;
+    }
+    const nextId = wordDeckRef.current.shift()!;
+    lastWordIdRef.current = nextId;
+    return pool.find(w => w.id === nextId) ?? pool[0];
+  }, []);
+
   // --- Data fetching ---
 
   const fetchWords = useCallback(async () => {
@@ -232,6 +259,9 @@ export default function EnglishGameContainer() {
       alert('Nemáš žádná slovíčka.');
       return;
     }
+    // Reset deck so new game starts fresh
+    wordDeckRef.current = [];
+    lastWordIdRef.current = '';
     setGameMode(mode);
     setStats({ correct: 0, total: 0, errors: 0, percentage: 0 });
     setLiveScore(0);
@@ -245,10 +275,11 @@ export default function EnglishGameContainer() {
     setClickedOptions(new Set());
     setHasErrorInCurrent(false);
     setSpellingInput('');
-    const problem = generateEnglishProblem(currentWords, [selectedMode]);
+    const chosen = pickNextWord(currentWords);
+    const problem = generateEnglishProblem(currentWords, [selectedMode], chosen);
     setCurrentProblem(problem);
     if (problem?.audioUrl && problem.type !== 'picture') setTimeout(() => playAudio(problem.audioUrl!), 300);
-  }, [getFilteredWords, selectedMode]);
+  }, [getFilteredWords, selectedMode, pickNextWord]);
 
   const handleAnswer = (answer: string) => {
     if (!currentProblem || feedback !== null) return;

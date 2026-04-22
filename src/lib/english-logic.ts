@@ -4,13 +4,20 @@ const getRandomInt = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
+// Fisher-Yates — unbiased, unlike sort(() => Math.random() - 0.5)
 const shuffleArray = <T>(array: T[]): T[] => {
-  return [...array].sort(() => Math.random() - 0.5);
+  const a = [...array];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 };
 
 export const generateEnglishProblem = (
   words: VocabularyWord[],
-  modes: EnglishMode[]
+  modes: EnglishMode[],
+  forcedWord?: VocabularyWord
 ): EnglishProblem | null => {
   if (words.length < 1) return null;
 
@@ -22,7 +29,9 @@ export const generateEnglishProblem = (
     const wordsWithImages = words.filter(w => w.image_url);
     if (wordsWithImages.length === 0) return null;
 
-    const correctWord = wordsWithImages[getRandomInt(0, wordsWithImages.length - 1)];
+    // Use forcedWord if it has an image, otherwise fall back to random
+    const correctWord = (forcedWord?.image_url ? forcedWord : null)
+      ?? wordsWithImages[getRandomInt(0, wordsWithImages.length - 1)];
     const canDoWordToPicture = wordsWithImages.length >= 4;
     const pictureVariant: 'picture_to_word' | 'word_to_picture' =
       canDoWordToPicture && Math.random() > 0.5 ? 'word_to_picture' : 'picture_to_word';
@@ -63,7 +72,7 @@ export const generateEnglishProblem = (
 
   // ── Listen & Spelling modes ───────────────────────────────────────────────
 
-  const correctWord = words[getRandomInt(0, words.length - 1)];
+  const correctWord = forcedWord ?? words[getRandomInt(0, words.length - 1)];
 
   const generateMisspellings = (word: string): string[] => {
     const misspellings = new Set<string>();
