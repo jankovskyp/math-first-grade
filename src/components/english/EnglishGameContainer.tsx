@@ -38,6 +38,7 @@ function CustomDatePicker({
   const startOffset = (firstDayOfMonth(year, month) + 6) % 7;
   for (let i = 0; i < startOffset; i++) days.push(null);
   for (let i = 1; i <= daysInMonth(year, month); i++) days.push(i);
+  const todayIso = new Date().toISOString().split('T')[0];
 
   return (
     <div
@@ -83,6 +84,8 @@ function CustomDatePicker({
                 className={`h-16 text-2xl font-black rounded-2xl flex items-center justify-center transition-all ${
                   initialDate === iso
                     ? 'bg-class-green text-white shadow-lg scale-105'
+                    : iso === todayIso
+                    ? 'bg-slate-50 text-class-green ring-2 ring-class-green hover:bg-class-green/10'
                     : 'bg-slate-50 text-board-black hover:bg-class-green/10'
                 }`}
               >
