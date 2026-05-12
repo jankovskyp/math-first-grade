@@ -49,6 +49,10 @@ export function SpellingKeyboard({
         setHwKeyboardActive(true);
         onChangeRef.current(valueRef.current + e.key.toUpperCase());
         e.preventDefault();
+      } else if (e.key === ' ') {
+        setHwKeyboardActive(true);
+        onChangeRef.current(valueRef.current + ' ');
+        e.preventDefault();
       } else if (e.key === 'Backspace') {
         setHwKeyboardActive(true);
         onChangeRef.current(valueRef.current.slice(0, -1));
@@ -92,7 +96,7 @@ export function SpellingKeyboard({
             key={i}
             className={`w-9 h-11 sm:w-11 sm:h-13 flex items-center justify-center rounded-xl text-lg sm:text-xl font-black border-2 transition-colors ${boxBase}`}
           >
-            {ch}
+            {ch === ' ' ? <span className="text-slate-300 text-base">·</span> : ch}
           </div>
         ))}
         {/* Blinking cursor */}
@@ -140,7 +144,7 @@ export function SpellingKeyboard({
             </div>
           ))}
 
-          {/* Delete + Submit row */}
+          {/* Delete + Space + Submit row */}
           <div className="flex gap-2 mt-1 w-full">
             <button
               type="button"
@@ -153,9 +157,17 @@ export function SpellingKeyboard({
             </button>
             <button
               type="button"
+              onClick={() => addLetter(' ')}
+              disabled={feedbackState !== null || disabled}
+              className="flex-1 h-11 sm:h-13 bg-white rounded-lg font-bold text-board-black shadow-[0_2px_0_0_#c4bfe8] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none text-sm sm:text-base"
+            >
+              SPACE
+            </button>
+            <button
+              type="button"
               onClick={onSubmit}
               disabled={!value.trim() || feedbackState === 'correct' || disabled}
-              className="flex-1 h-11 sm:h-13 bg-class-green text-white rounded-lg font-black shadow-[0_2px_0_0_rgba(91,33,182,0.4)] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none text-base sm:text-lg"
+              className="px-6 h-11 sm:h-13 bg-class-green text-white rounded-lg font-black shadow-[0_2px_0_0_rgba(91,33,182,0.4)] active:shadow-none active:translate-y-[2px] touch-manipulation transition-all disabled:opacity-40 select-none text-base sm:text-lg"
             >
               OK →
             </button>
