@@ -17,3 +17,6 @@ CREATE TABLE IF NOT EXISTS public.game_sessions (
 
 CREATE INDEX IF NOT EXISTS game_sessions_player_id_idx ON public.game_sessions(player_id);
 CREATE INDEX IF NOT EXISTS game_sessions_created_at_idx ON public.game_sessions(created_at DESC);
+
+-- Disable RLS to match the leaderboard tables (anonymous access)
+ALTER TABLE public.game_sessions DISABLE ROW LEVEL SECURITY;

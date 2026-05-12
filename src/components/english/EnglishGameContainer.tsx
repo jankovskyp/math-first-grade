@@ -283,11 +283,8 @@ export default function EnglishGameContainer() {
     }
 
     if (isSupabaseConfigured && supabase && player?.id) {
-      try {
-        await supabase.from('game_sessions').insert([sessionData]);
-      } catch (err) {
-        console.error('Failed to save game session:', err);
-      }
+      const { error } = await supabase.from('game_sessions').insert([sessionData]);
+      if (error) console.error('[saveSession] Supabase error:', error);
     }
   };
 
