@@ -2,16 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EnglishGameState, EnglishMode, EnglishProblem, EnglishStats, EnglishLeaderboardEntry, VocabularyWord } from '../../types/english';
+import { GameSession, SessionAnswer } from '../../types/sessions';
 import { generateEnglishProblem, playAudio } from '../../lib/english-logic';
 import { DeskButton } from '../shared/DeskButton';
 import { SpellingKeyboard } from '../shared/SpellingKeyboard';
 import { AppHeader } from '../shared/AppHeader';
+import { SessionHistory, SESSION_LS_KEY } from '../shared/SessionHistory';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import Image from 'next/image';
 import {
   Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home,
   ListOrdered, Frown, Star, Loader2, Volume2, X, ChevronLeft,
-  ChevronRight, Medal,
+  ChevronRight, Medal, History,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '@/context/PlayerContext';
@@ -127,6 +129,7 @@ export default function EnglishGameContainer() {
   // --- Shuffle-deck: every word appears once before any repeats ---
   const wordDeckRef    = useRef<string[]>([]);  // ids for listen/spelling/picture
   const lastWordIdRef  = useRef<string>('');
+  const sessionAnswersRef = useRef<SessionAnswer[]>([]);
 
   const pickNextWord = useCallback((pool: VocabularyWord[]): VocabularyWord => {
     if (pool.length === 0) return pool[0];
@@ -251,6 +254,43 @@ export default function EnglishGameContainer() {
     setIsLoading(false);
   };
 
+  const saveSession = async () => {
+    if (stats.total === 0) return;
+    const answers = [...sessionAnswersRef.current];
+    const accuracy = Math.round((stats.correct / (stats.total || 1)) * 100);
+    const sessionData = {
+      player_id: player?.id,
+      subject: 'english' as const,
+      game_mode: gameMode,
+      submode: selectedMode,
+      correct: stats.correct,
+      incorrect: stats.errors,
+      total: stats.total,
+      accuracy,
+      score: liveScore,
+      answers,
+    };
+
+    if (player?.id) {
+      const key = SESSION_LS_KEY(player.id);
+      const existing: GameSession[] = JSON.parse(localStorage.getItem(key) || '[]');
+      const newEntry: GameSession = {
+        ...sessionData,
+        id: Math.random().toString(36).substring(2, 9),
+        created_at: new Date().toISOString(),
+      };
+      localStorage.setItem(key, JSON.stringify([newEntry, ...existing].slice(0, 200)));
+    }
+
+    if (isSupabaseConfigured && supabase && player?.id) {
+      try {
+        await supabase.from('game_sessions').insert([sessionData]);
+      } catch (err) {
+        console.error('Failed to save game session:', err);
+      }
+    }
+  };
+
   // --- Game logic ---
 
   const startNewGame = (mode: 'training' | 'competition') => {
@@ -262,6 +302,7 @@ export default function EnglishGameContainer() {
     // Reset deck so new game starts fresh
     wordDeckRef.current = [];
     lastWordIdRef.current = '';
+    sessionAnswersRef.current = [];
     setGameMode(mode);
     setStats({ correct: 0, total: 0, errors: 0, percentage: 0 });
     setLiveScore(0);
@@ -284,12 +325,19 @@ export default function EnglishGameContainer() {
   const handleAnswer = (answer: string) => {
     if (!currentProblem || feedback !== null) return;
     const isCorrect = answer.toLowerCase().trim() === currentProblem.correctAnswer.toLowerCase().trim();
+    const questionLabel = currentProblem.correctAnswer;
 
     if (isCorrect) {
       setFeedback('correct');
       const newCorrect = !hasErrorInCurrent ? stats.correct + 1 : stats.correct;
       const newTotal   = stats.total + 1;
       setStats(prev => ({ ...prev, correct: newCorrect, total: newTotal }));
+
+      sessionAnswersRef.current.push({
+        question: questionLabel,
+        correctAnswer: currentProblem.correctAnswer,
+        wasCorrect: !hasErrorInCurrent,
+      });
 
       if (gameMode === 'competition') {
         const accuracy = Math.round((newCorrect / newTotal) * 100);
@@ -311,6 +359,11 @@ export default function EnglishGameContainer() {
         const accuracy = Math.round((stats.correct / newTotal) * 100);
         const newScore = Math.max(0, Math.round(((stats.correct * 10) - (newErrors * 5)) * (accuracy / 100)));
         setLiveScore(newScore);
+        sessionAnswersRef.current.push({
+          question: questionLabel,
+          correctAnswer: currentProblem.correctAnswer,
+          wasCorrect: false,
+        });
         setTimeout(() => nextProblem(), 800);
       } else {
         // training: clear feedback + input after 1 s so user can retry
@@ -325,6 +378,13 @@ export default function EnglishGameContainer() {
   };
 
   const handleSkip = () => {
+    if (currentProblem) {
+      sessionAnswersRef.current.push({
+        question: currentProblem.correctAnswer,
+        correctAnswer: currentProblem.correctAnswer,
+        wasCorrect: false,
+      });
+    }
     if (!hasErrorInCurrent) {
       const newErrors = stats.errors + 1;
       const newTotal = stats.total + 1;
@@ -352,6 +412,7 @@ export default function EnglishGameContainer() {
         .reduce((best, e) => Math.max(best, e.score), 0);
       const isNewRecord = liveScore > personalBest && liveScore > 0;
       if (isNewRecord) setShowNewRecord(true);
+      saveSession();
       if (isNewRecord) {
         saveToLeaderboard().then(() => {
           setTimeout(() => { setShowNewRecord(false); setGameState('RESULTS'); }, 5000);
@@ -378,6 +439,17 @@ export default function EnglishGameContainer() {
     );
   }
 
+  if (gameState === 'HISTORY') {
+    return (
+      <SessionHistory
+        playerId={player?.id}
+        subject="english"
+        headerSubject="Angličtina"
+        onBack={() => setGameState('HOME')}
+      />
+    );
+  }
+
   // ── HOME ──────────────────────────────────────────────────────────────────
   if (gameState === 'HOME') {
     return (
@@ -393,6 +465,9 @@ export default function EnglishGameContainer() {
             </DeskButton>
             <DeskButton size="lg" variant="outline" className="w-full border-slate-200 py-5" onClick={() => setGameState('LEADERBOARD')}>
               <ListOrdered className="mr-4 w-7 h-7" /> Žebříček
+            </DeskButton>
+            <DeskButton size="lg" variant="outline" className="w-full border-slate-200 py-5" onClick={() => setGameState('HISTORY')}>
+              <History className="mr-4 w-7 h-7" /> Historie
             </DeskButton>
           </div>
         </div>
@@ -587,7 +662,10 @@ export default function EnglishGameContainer() {
 
         {/* ── Topbar — training: [home+badges] · competition: [home][score][timer] */}
         <div className="flex items-center mb-4 flex-shrink-0 gap-2">
-          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2 shrink-0">
+          <DeskButton variant="outline" size="md" onClick={() => {
+            if (gameMode === 'training' && stats.total > 0) saveSession();
+            setGameState('HOME');
+          }} className="border-class-green border-2 shrink-0">
             <Home className="w-6 h-6 text-class-green" />
           </DeskButton>
 

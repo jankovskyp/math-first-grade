@@ -22,7 +22,7 @@ export interface EnglishProblem {
   imageOptions?: { word: string; imageUrl: string }[];
 }
 
-export type EnglishGameState = 'HOME' | 'SETUP' | 'PLAYING' | 'RESULTS' | 'LEADERBOARD';
+export type EnglishGameState = 'HOME' | 'SETUP' | 'PLAYING' | 'RESULTS' | 'LEADERBOARD' | 'HISTORY';
 
 export interface EnglishStats {
   correct: number;

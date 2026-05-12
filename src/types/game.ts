@@ -14,7 +14,7 @@ export interface Problem {
 }
 
 export type GameMode = 'training' | 'competition';
-export type GameState = 'HOME' | 'SETUP' | 'PLAYING' | 'RESULTS' | 'LEADERBOARD';
+export type GameState = 'HOME' | 'SETUP' | 'PLAYING' | 'RESULTS' | 'LEADERBOARD' | 'HISTORY';
 
 export interface GameStats {
   correct: number;

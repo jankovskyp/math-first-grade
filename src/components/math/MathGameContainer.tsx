@@ -1,17 +1,26 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState, GameMode, Operation, NumberRange, Problem, GameStats, LeaderboardEntry, DecompositionVariant } from '@/types/game';
+import { GameSession, SessionAnswer } from '@/types/sessions';
 import { generateProblem } from '@/lib/math-logic';
 import { DeskButton } from '@/components/shared/DeskButton';
 import { AppHeader } from '@/components/shared/AppHeader';
+import { SessionHistory, SESSION_LS_KEY } from '@/components/shared/SessionHistory';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Frown, Star, Loader2, Medal } from 'lucide-react';
+import { Trophy, Timer, RotateCcw, Play, CheckCircle2, XCircle, Home, ListOrdered, Frown, Star, Loader2, Medal, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { usePlayer } from '@/context/PlayerContext';
 
 const LOCAL_STORAGE_KEY = 'math-leaderboard-local';
+
+const formatMathQuestion = (p: Problem): string => {
+  if (p.type === 'comparison') return `${p.a} ? ${p.b}`;
+  if (p.type === 'decomposition' && p.decompositionVariant === 'hard') return `${p.a}=?+?`;
+  if (p.type === 'decomposition') return `${p.a}=${p.b}+?`;
+  return `${p.a}${p.displayOperator}${p.b}`;
+};
 
 export default function MathGameContainer() {
   const router = useRouter();
@@ -35,6 +44,8 @@ export default function MathGameContainer() {
   const [liveScore, setLiveScore] = useState(0);
   const [scorePop, setScorePop] = useState(false);
   const [showNewRecord, setShowNewRecord] = useState(false);
+
+  const sessionAnswersRef = useRef<SessionAnswer[]>([]);
 
   // --- Hybrid Persistence Logic ---
 
@@ -110,9 +121,47 @@ export default function MathGameContainer() {
     setIsLoading(false);
   };
 
+  const saveSession = async () => {
+    if (stats.total === 0) return;
+    const answers = [...sessionAnswersRef.current];
+    const accuracy = Math.round((stats.correct / (stats.total || 1)) * 100);
+    const sessionData = {
+      player_id: player?.id,
+      subject: 'math' as const,
+      game_mode: gameMode,
+      submode: String(range),
+      correct: stats.correct,
+      incorrect: stats.errors,
+      total: stats.total,
+      accuracy,
+      score: liveScore,
+      answers,
+    };
+
+    if (player?.id) {
+      const key = SESSION_LS_KEY(player.id);
+      const existing: GameSession[] = JSON.parse(localStorage.getItem(key) || '[]');
+      const newEntry: GameSession = {
+        ...sessionData,
+        id: Math.random().toString(36).substring(2, 9),
+        created_at: new Date().toISOString(),
+      };
+      localStorage.setItem(key, JSON.stringify([newEntry, ...existing].slice(0, 200)));
+    }
+
+    if (isSupabaseConfigured && supabase && player?.id) {
+      try {
+        await supabase.from('game_sessions').insert([sessionData]);
+      } catch (err) {
+        console.error('Failed to save game session:', err);
+      }
+    }
+  };
+
   // --- Game Logic ---
 
   const startNewGame = (mode: GameMode) => {
+    sessionAnswersRef.current = [];
     setGameMode(mode);
     setStats({ correct: 0, total: 0, errors: 0, percentage: 0 });
     setLiveScore(0);
@@ -142,6 +191,7 @@ export default function MathGameContainer() {
   const handleAnswer = (answer: number | string) => {
     if (!currentProblem || feedback === 'correct') return;
     const isCorrect = answer === currentProblem.result;
+    const questionLabel = formatMathQuestion(currentProblem);
 
     if (isCorrect) {
       setFeedback('correct');
@@ -149,6 +199,12 @@ export default function MathGameContainer() {
       const newTotal = stats.total + 1;
 
       setStats(prev => ({ ...prev, correct: newCorrect, total: newTotal }));
+
+      sessionAnswersRef.current.push({
+        question: questionLabel,
+        correctAnswer: String(currentProblem.result),
+        wasCorrect: !hasErrorInCurrent,
+      });
 
       if (gameMode === 'competition') {
         const accuracy = Math.round((newCorrect / newTotal) * 100);
@@ -175,6 +231,11 @@ export default function MathGameContainer() {
         const rawScore = (stats.correct * 10) - (newErrors * 5);
         const newScore = Math.max(0, Math.round(rawScore * (accuracy / 100)));
         setLiveScore(newScore);
+        sessionAnswersRef.current.push({
+          question: questionLabel,
+          correctAnswer: String(currentProblem.result),
+          wasCorrect: false,
+        });
         nextProblem();
       }
     }
@@ -185,7 +246,6 @@ export default function MathGameContainer() {
     if (gameState === 'PLAYING' && gameMode === 'competition' && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (timeLeft === 0 && gameState === 'PLAYING') {
-      // Check personal best for this player + range
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       const localList: (LeaderboardEntry & { player_id?: string })[] = saved ? JSON.parse(saved) : [];
       const personalBest = localList
@@ -193,7 +253,7 @@ export default function MathGameContainer() {
         .reduce((best, e) => Math.max(best, e.score), 0);
       const isNewRecord = liveScore > personalBest && liveScore > 0;
       if (isNewRecord) setShowNewRecord(true);
-      // Only save when it's a new personal record
+      saveSession();
       if (isNewRecord) {
         saveToLeaderboard().then(() => {
           setTimeout(() => { setShowNewRecord(false); setGameState('RESULTS'); }, 5000);
@@ -218,6 +278,17 @@ export default function MathGameContainer() {
     );
   }
 
+  if (gameState === 'HISTORY') {
+    return (
+      <SessionHistory
+        playerId={player?.id}
+        subject="math"
+        headerSubject="Matematika"
+        onBack={() => setGameState('HOME')}
+      />
+    );
+  }
+
   if (gameState === 'HOME') {
     return (
       <div className="flex flex-col h-full bg-desk-white font-sans text-board-black">
@@ -227,6 +298,7 @@ export default function MathGameContainer() {
             <DeskButton size="lg" onClick={() => { setGameMode('training'); setGameState('SETUP'); }} className="w-full py-7"><Play className="mr-4 w-9 h-9" fill="currentColor" strokeWidth={2.5} /> Trénink</DeskButton>
             <DeskButton size="lg" variant="secondary" onClick={() => { setGameMode('competition'); setGameState('SETUP'); }} className="w-full py-7"><Trophy className="mr-4 w-9 h-9" fill="currentColor" strokeWidth={2.5} /> Soutěž</DeskButton>
             <DeskButton size="lg" variant="outline" className="w-full border-slate-200 py-5" onClick={() => setGameState('LEADERBOARD')}><ListOrdered className="mr-4 w-7 h-7" /> Žebříček</DeskButton>
+            <DeskButton size="lg" variant="outline" className="w-full border-slate-200 py-5" onClick={() => setGameState('HISTORY')}><History className="mr-4 w-7 h-7" /> Historie</DeskButton>
           </div>
         </div>
       </div>
@@ -368,7 +440,10 @@ export default function MathGameContainer() {
       <div className="flex flex-col h-full p-4 font-sans text-board-black">
         {/* Topbar — training: [home + badges] · competition: [home][score pill][timer] */}
         <div className="flex items-center mb-4 gap-2">
-          <DeskButton variant="outline" size="md" onClick={() => setGameState('HOME')} className="border-class-green border-2 shrink-0">
+          <DeskButton variant="outline" size="md" onClick={() => {
+            if (gameMode === 'training' && stats.total > 0) saveSession();
+            setGameState('HOME');
+          }} className="border-class-green border-2 shrink-0">
             <Home className="w-6 h-6 text-class-green" />
           </DeskButton>
 
