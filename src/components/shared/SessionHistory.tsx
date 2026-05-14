@@ -73,7 +73,7 @@ export function SessionHistory({ playerId, subject, headerSubject, onBack }: Pro
   return (
     <div className="flex flex-col h-full bg-desk-white font-sans text-board-black">
       <AppHeader subject={headerSubject} page="Historie" onBack={onBack} />
-      <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3 mt-3">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 flex flex-col gap-3 mt-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-4 py-16">
             <Loader2 className="w-12 h-12 animate-spin text-slate-200" />
@@ -88,7 +88,7 @@ export function SessionHistory({ playerId, subject, headerSubject, onBack }: Pro
             const { date, time } = formatDateTime(session.created_at);
             const isExpanded = expandedId === session.id;
             return (
-              <div key={session.id} className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
+              <div key={session.id} className="bg-white rounded-[1.5rem] shadow-sm border border-slate-100">
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : session.id)}
                   className="w-full p-4 flex items-center gap-3 text-left active:bg-slate-50 transition-colors"
