@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { EnglishGameState, EnglishMode, EnglishProblem, EnglishStats, EnglishLeaderboardEntry, VocabularyWord } from '../../types/english';
 import { GameSession, SessionAnswer } from '../../types/sessions';
-import { generateEnglishProblem, playAudio } from '../../lib/english-logic';
+import { generateEnglishProblem, playAudio, stopAudio } from '../../lib/english-logic';
 import { DeskButton } from '../shared/DeskButton';
 import { SpellingKeyboard } from '../shared/SpellingKeyboard';
 import { AppHeader } from '../shared/AppHeader';
@@ -130,6 +130,7 @@ export default function EnglishGameContainer() {
   const wordDeckRef    = useRef<string[]>([]);  // ids for listen/spelling/picture
   const lastWordIdRef  = useRef<string>('');
   const sessionAnswersRef = useRef<SessionAnswer[]>([]);
+  const audioTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const pickNextWord = useCallback((pool: VocabularyWord[]): VocabularyWord => {
     if (pool.length === 0) return pool[0];
@@ -313,10 +314,15 @@ export default function EnglishGameContainer() {
     setClickedOptions(new Set());
     setHasErrorInCurrent(false);
     setSpellingInput('');
+    // Cancel any pending auto-play from the previous word
+    if (audioTimeoutRef.current) clearTimeout(audioTimeoutRef.current);
+    stopAudio();
     const chosen = pickNextWord(currentWords);
     const problem = generateEnglishProblem(currentWords, [selectedMode], chosen);
     setCurrentProblem(problem);
-    if (problem?.audioUrl && problem.type !== 'picture') setTimeout(() => playAudio(problem.audioUrl!), 300);
+    if (problem?.audioUrl && problem.type !== 'picture') {
+      audioTimeoutRef.current = setTimeout(() => playAudio(problem.audioUrl!), 300);
+    }
   }, [getFilteredWords, selectedMode, pickNextWord]);
 
   const handleAnswer = (answer: string) => {
@@ -660,6 +666,8 @@ export default function EnglishGameContainer() {
         {/* ── Topbar — training: [home+badges] · competition: [home][score][timer] */}
         <div className="flex items-center mb-4 flex-shrink-0 gap-2">
           <DeskButton variant="outline" size="md" onClick={() => {
+            if (audioTimeoutRef.current) clearTimeout(audioTimeoutRef.current);
+            stopAudio();
             if (gameMode === 'training' && stats.total > 0) saveSession();
             setGameState('HOME');
           }} className="border-class-green border-2 shrink-0">

@@ -166,8 +166,22 @@ export const generateEnglishProblem = (
   }
 };
 
+let _currentAudio: HTMLAudioElement | null = null;
+
+export const stopAudio = () => {
+  if (_currentAudio) {
+    _currentAudio.pause();
+    _currentAudio.src = '';
+    _currentAudio = null;
+  }
+};
+
 export const playAudio = (url: string) => {
   if (!url) return;
+  stopAudio();
   const audio = new Audio(url);
-  audio.play().catch(e => console.error('Failed to play audio:', e));
+  _currentAudio = audio;
+  audio.play().catch(() => {
+    // Autoplay blocked — user will tap the button manually
+  });
 };
