@@ -318,12 +318,12 @@ export default function EnglishGameContainer() {
     if (audioTimeoutRef.current) clearTimeout(audioTimeoutRef.current);
     stopAudio();
     const chosen = pickNextWord(currentWords);
-    const problem = generateEnglishProblem(currentWords, [selectedMode], chosen);
+    const problem = generateEnglishProblem(currentWords, [selectedMode], chosen, words);
     setCurrentProblem(problem);
     if (problem?.audioUrl && problem.type !== 'picture') {
       audioTimeoutRef.current = setTimeout(() => playAudio(problem.audioUrl!), 300);
     }
-  }, [getFilteredWords, selectedMode, pickNextWord]);
+  }, [getFilteredWords, selectedMode, pickNextWord, words]);
 
   const handleAnswer = (answer: string) => {
     if (!currentProblem || feedback !== null) return;

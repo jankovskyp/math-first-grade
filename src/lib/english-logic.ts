@@ -17,12 +17,14 @@ const shuffleArray = <T>(array: T[]): T[] => {
 export const generateEnglishProblem = (
   words: VocabularyWord[],
   modes: EnglishMode[],
-  forcedWord?: VocabularyWord
+  forcedWord?: VocabularyWord,
+  allWords?: VocabularyWord[]   // full vocabulary — used for distractors so options aren't limited to the filtered set
 ): EnglishProblem | null => {
   if (words.length < 1) return null;
 
   const mode = modes[getRandomInt(0, modes.length - 1)];
   const id = Math.random().toString(36).substring(2, 9);
+  const distractorPool = allWords ?? words;
 
   // ── Picture mode ──────────────────────────────────────────────────────────
   if (mode === 'picture') {
@@ -32,13 +34,14 @@ export const generateEnglishProblem = (
     // Use forcedWord if it has an image, otherwise fall back to random
     const correctWord = (forcedWord?.image_url ? forcedWord : null)
       ?? wordsWithImages[getRandomInt(0, wordsWithImages.length - 1)];
-    const canDoWordToPicture = wordsWithImages.length >= 4;
+    const allWordsWithImages = distractorPool.filter(w => w.image_url);
+    const canDoWordToPicture = allWordsWithImages.length >= 4;
     const pictureVariant: 'picture_to_word' | 'word_to_picture' =
       canDoWordToPicture && Math.random() > 0.5 ? 'word_to_picture' : 'picture_to_word';
 
     if (pictureVariant === 'picture_to_word') {
       // Show image → player picks the correct word from 4 options
-      const others = shuffleArray(words.filter(w => w.id !== correctWord.id));
+      const others = shuffleArray(distractorPool.filter(w => w.id !== correctWord.id));
       const distractors = others.slice(0, 3).map(w => w.en);
       return {
         id,
@@ -53,7 +56,7 @@ export const generateEnglishProblem = (
     } else {
       // Show word → player picks the correct image from 4 options
       const distractors = shuffleArray(
-        wordsWithImages.filter(w => w.id !== correctWord.id)
+        allWordsWithImages.filter(w => w.id !== correctWord.id)
       ).slice(0, 3);
       return {
         id,
