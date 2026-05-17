@@ -174,7 +174,8 @@ let _currentAudio: HTMLAudioElement | null = null;
 export const stopAudio = () => {
   if (_currentAudio) {
     _currentAudio.pause();
-    _currentAudio.src = '';
+    // Do NOT set src = '' — on iOS Safari that corrupts the audio session
+    // and silently blocks every subsequent Audio element on the page.
     _currentAudio = null;
   }
 };
@@ -184,7 +185,11 @@ export const playAudio = (url: string) => {
   stopAudio();
   const audio = new Audio(url);
   _currentAudio = audio;
-  audio.play().catch(() => {
-    // Autoplay blocked — user will tap the button manually
+  audio.play().catch((err) => {
+    // Clear the stale reference so the next tap starts completely fresh.
+    if (_currentAudio === audio) _currentAudio = null;
+    if (err.name !== 'AbortError') {
+      console.warn('[audio] play failed:', err.name, err.message);
+    }
   });
 };
